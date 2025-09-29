@@ -82,7 +82,13 @@
             
             // Format the time as a string (e.g., "15:00:00")
             // toLocaleTimeString is the easiest way to get a clean, local time format
-            const timeString = now.toLocaleTimeString();
+            const timeString = now.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit', 
+    second: '2-digit', 
+    hour12: true 
+});
+
 
             // Find the <div> element with the id "live-clock"
             const clockElement = document.getElementById('live-clock');
