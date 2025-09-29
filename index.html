@@ -1,0 +1,99 @@
+<head>
+    <meta charset="UTF-8">
+    <title>Secret Website</title>
+    
+    <style>
+        body {
+            /* Optional: Set a background for the whole page to make the clock stand out */
+            background-color: #0391e66; /* Dark background */
+            color: #ffffff; /* Light text for the body */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; /* Flexbox for centering if desired */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh; /* Full viewport height */
+            margin: 0;
+        }
+
+        h1 {
+            color: #D30000; /* A nice bright red  for headings */
+            margin-bottom: 20px;
+        }
+
+        #live-clock {
+            font-size: 290px; /* Larger font size */
+            font-weight: bold;
+            font-family: 'SF Mono', 'Consolas', monospace; /* Modern monospace font */
+            padding: 20px 30px; /* More padding */
+            border: 2px solid #61dafb; /* Colorful border */
+            border-radius: 10px; /* Rounded corners */
+            display: inline-block;
+            background-color: #84b5f0; /* Darker background for the clock itself */
+            color: #D30000; /* Bright red  text for the time */
+            box-shadow: 0 0 15px rgba(97, 218, 251, 0.7); /* Glow effect */
+            letter-spacing: 2px; /* Spread out letters a bit */
+            transition: all 0.3s ease-in-out; /* Smooth transition for hover effects */
+        }
+
+        /* Optional: Add a hover effect for a bit more interactivity */
+        #live-clock:hover {
+            box-shadow: 0 0 25px rgba(97, 218, 251, 1);
+            transform: scale(2.02);
+            background-color: #D3F1F2;
+        }
+    </style>
+</head><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Website</title>
+    <style>
+        /* Optional CSS for a simple digital clock look */
+        #live-clock {
+            font-size: 24px;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid #ccc;
+            display: inline-block;
+            background-color: #0458cd;
+        }
+    </style>
+</head>
+<body>
+    
+<a href="about.html"><button>About</button></a>
+    <h1>Welcome to my website!</h1>
+<img src="Rosee.jpg" alt="A beautiful rose" style="max-width: 400px; height: auto;">
+   
+ <div id="live-clock"></div>
+
+    <hr>
+    <script>
+        // Function to get the current time and update the display
+        function updateClock() {
+            // Create a new Date object to get the current date and time
+            const now = new Date();
+            
+            // Format the time as a string (e.g., "15:00:00")
+            // toLocaleTimeString is the easiest way to get a clean, local time format
+            const timeString = now.toLocaleTimeString();
+
+            // Find the <div> element with the id "live-clock"
+            const clockElement = document.getElementById('live-clock');
+
+            // Update the content of that <div>
+            clockElement.innerText = timeString;
+        }
+
+        // 3. Start the clock immediately when the page loads
+        updateClock(); 
+
+        // 4. Set an interval to run the updateClock function every 1000 milliseconds (1 second)
+        // This is what makes it a "live" clock
+        setInterval(updateClock, 1000);
+    </script>
+
+</body>
+</html>
