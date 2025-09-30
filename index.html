@@ -32,28 +32,7 @@
     <!-- QR Code Library: Generates the QR image using JavaScript -->
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
  
-    /* --- QR Code Styling (Final Fix) --- */
-    #qrcode-container {
-        padding-bottom: 0.5rem;
-        display: flex; 
-        justify-content: center;
-   
-        /* CRITICAL FIX: Ensures no raw text or container space is visible */
-        line-height: 0; 
-        visibility: hidden;
-        opacity 0.5s;
-    }
-
-    #qrcode-container.visible {
-    /* Made vidible only by the Javascript after generation is complete */
-        visibility: visible;
-        opacity: 1;
-    }
-    #qrcode-container canvas, #qrcode-container img {
-        border: 4px solid white;
-        border-radius: 5px;
-        box-shadow: 0 0 10px rgba(97, 218, 251, 0.5); 
-    }
+    
     <style>
         body {
             /* Optional: Set a background for the whole page to make the clock stand out */
@@ -124,6 +103,28 @@
     height: 100%; /* Force image to take 100% of container height */
     object-fit: cover; /* Crops the image to fully cover the circle area */
 }
+        /* --- QR Code Styling (Final Fix) --- */
+    #qrcode-container {
+        padding-bottom: 0.5rem;
+        display: flex; 
+        justify-content: center;
+   
+        /* CRITICAL FIX: Ensures no raw text or container space is visible */
+        line-height: 0; 
+        visibility: hidden;
+        opacity 0.5s;
+    }
+
+    #qrcode-container.visible {
+    /* Made vidible only by the Javascript after generation is complete */
+        visibility: visible;
+        opacity: 1;
+    }
+    #qrcode-container canvas, #qrcode-container img {
+        border: 4px solid white;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(97, 218, 251, 0.5); 
+    }
     </style>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
