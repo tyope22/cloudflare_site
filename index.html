@@ -358,12 +358,39 @@ function setShayari(verse) {
     }
 }
 
+// Array of beautiful neon/deep colors for the box change
+const neonColors = [
+    '#FF33CC', // Hot Pink
+    '#33FFCC', // Cyan
+    '#FFFF33', // Neon Yellow
+    '#FF6600', // Neon Orange
+    '#9933FF', // Deep Purple
+    '#00FF99', // Emerald Green
+    '#FF0033'  // Bright Red
+];
+
+function setBoxColor(color) {
+    const container = document.getElementById('shayari-container');
+    if (container) {
+        // Set the border and box-shadow to the new color
+        container.style.borderColor = color;
+        container.style.boxShadow = `0 0 25px ${color}`;
+    }
+}
+
 function rotateShayari() {
     if (shayariCollection.length === 0) return;
 
-    // Cycle through verses sequentially
+    // 1. Cycle through verses sequentially (since the collection is already shuffled)
     setShayari(shayariCollection[currentShayariIndex]);
     currentShayariIndex = (currentShayariIndex + 1) % shayariCollection.length;
+
+    // 2. Pick a random color index from the list
+    const randomColorIndex = Math.floor(Math.random() * neonColors.length);
+    const newColor = neonColors[randomColorIndex];
+    
+    // 3. Apply the new color to the box border and glow
+    setBoxColor(newColor);
 }
 
 async function loadShayari() {
