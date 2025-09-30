@@ -28,8 +28,6 @@
  
     <!-- Essential for responsiveness -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
   
     <style>
         body {
@@ -71,6 +69,17 @@
             transform: scale(2.02);
             background-color: #D3F1F2;
         }
+
+        /* --- New Animation Keyframes and Class for Header --- */
+        @keyframes pop-in {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-header {
+            animation: pop-in 1s ease-out 0.5s forwards; /* 1 second duration, wait 0.5 seconds */
+            opacity: 0; /* Ensures the header starts invisible before the animation runs */
+        }
+        
         </style>
     
     <!-- PASTE THIS NEW STYLE BLOCK INSIDE <head> -->
@@ -92,8 +101,7 @@
 </style>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- ADD THIS SCRIPT LINE HERE -->
-<script src="https://cdn.tailwindcss.com"></script>
+
 </head>
 <body>
     <header><h2> for you </h2></header>
@@ -102,8 +110,11 @@
 </a>
     
 <!-- Example of the h1 tag inside <body> (add 'animate-header') -->
-<h1 class="animate-header text-6xl ... other classes ... ">
+    <h1 class="animate-header text-6xl ... other classes ... ">
+
     Welcome to my website!
+
+
 </h1>
 
     <!-- This DIV uses Tailwind classes to make a circle -->
