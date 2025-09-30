@@ -367,39 +367,45 @@ function rotateShayari() {
 }
 
 async function loadShayari() {
+    // Standard Fisher-Yates Shuffle Algorithm
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
     try {
-        // Attempt to fetch the external file (will only work on your deployed server)
         const response = await fetch('./shayari.json');
         
         if (!response.ok) {
-            // If fetch fails, the catch block handles it.
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         shayariCollection = await response.json();
         
-        // Ensure data is an array
         if (!Array.isArray(shayariCollection) || shayariCollection.length === 0) {
             throw new Error("Shayari data is empty or malformed.");
         }
+
+        // ✅ NEW LOGIC: Shuffle the collection immediately after loading
+        shuffleArray(shayariCollection);
         
     } catch (error) {
-        // Log the failure to load the external file (expected in this preview)
         console.warn("Could not load external Shayari. If this is running in the preview, this is expected.");
     } finally {
-        // Start the rotation sequence only after attempting to load the data
         if (shayariCollection.length > 0) {
-            // ✅ NEW LOGIC: Set a random starting index
-            currentShayariIndex = Math.floor(Math.random() * shayariCollection.length);
+            // Start at the first verse of the now-shuffled array (which is random)
+            currentShayariIndex = 0; 
             
             rotateShayari();
             setInterval(rotateShayari, rotationInterval);
         } else {
-            // Display a non-repeating message if no verses were loaded
             setShayari("The Book of Verses is loading...");
         }
     }
 }
+
 
 
 // Initialize Shayari loading sequence
