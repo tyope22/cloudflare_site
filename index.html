@@ -178,7 +178,22 @@
     border-radius: 5px;
     box-shadow: 0 0 15px rgba(211, 0, 0, 0.7); /* Aesthetic red glow */
 }
-    
+
+    .image-circle {
+    border-radius: 9999px; /* rounded-full equivalent */
+    overflow: hidden; 
+    width: 16rem; 
+    height: 16rem; 
+    margin-left: auto;
+    margin-right: auto;
+    border: 3px solid rgba(211, 0, 0, 0.5); 
+}
+
+.image-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+}
 </style>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -198,16 +213,14 @@
 
 </h1>
 
-    <!-- This DIV uses Tailwind classes to make a circle -->
-
-    <div class="mb-10 shadow-xl rounded-full overflow-hidden w-64 h-64 mx-auto">
+ <div class="image-circle">
      
-    <img 
-        src="assets/Rosee.jpg" 
-        alt="A beautiful rose" 
-        class="w-full h-full object-cover" 
-        onerror="this.onerror=null; this.src='https://placehold.co/400x400/14b8a6/ffffff?text=Image+Placeholder'" 
-    />
+  <img 
+    src="assets/Rosee.jpg" 
+    alt="A beautiful rose" 
+    onerror="this.onerror=null; this.src='https://placehold.co/400x400/14b8a6/ffffff?text=Image+Placeholder'" 
+/>
+     
 </div>
    
 <!-- The Clock: Applying dark, modern colors with Tailwind -->
