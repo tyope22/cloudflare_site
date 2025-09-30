@@ -1,8 +1,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Secret Website</title>
-  
-  <!-- Standard Google SEO Description -->
+    
+    <!-- Favicon Links for browser tab icon (using a placeholder image and an emoji fallback) -->
+    <link rel="icon" href="https://placehold.co/32x32/ff0000/ffffff.ico?text=S" type="image/x-icon">
+    <link rel="icon" type="image/png" href="https://placehold.co/192x192/ff0000/ffffff.png?text=S">
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/ff0000/ffffff.png?text=S">
+
+    <!-- Standard Google SEO Description -->
     <meta name="description" content="A beautifully styled, dark-themed website featuring a captivating circular image, a massive glowing header, and a real-time digital clock.">
    
     <!-- ⬇️ THIS IS THE CORRECT SPOT FOR OG TAGS ⬇️ -->
@@ -16,6 +21,8 @@
     <meta name="twitter:title" content="Secret Website - A Digital Masterpiece">
     <meta name="twitter:description" content="Check out this mesmerizing, neon-styled digital experience!">
     <meta name="twitter:image" content="https://www.techtarget.com/whatis/definition/thumbnail">
+    <meta name="twitter:site" content="@yourhandle">
+    <meta name="twitter:creator" content="@creatorhandle">
  
     <!-- Essential for responsiveness -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -93,7 +100,15 @@
 
 </div>
 
-    <hr>
+    <!-- Styling the horizontal rule for a clean division -->
+    <hr class="w-1/4 my-12 border-t-2 border-gray-700">
+
+    <!-- Footer Section: Styled to complement the dark, futuristic theme -->
+    <footer class="mt-16 w-full p-4 bg-gray-800 text-center text-sm rounded-t-lg shadow-inner">
+        <p class="text-teal-400 font-mono">© 2024 Project Nexus. All Digital Rights Reserved.</p>
+        <p class="text-gray-500 mt-1">Built with passion and pure HTML/JS/Tailwind magic.</p>
+    </footer>
+
     <script>
         // Function to get the current time and update the display
         function updateClock() {
