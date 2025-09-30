@@ -206,35 +206,37 @@
             /* --- Shayari Display Styling --- */
             #shayari-container {
     margin-top: 3rem;
-    max-width: 700px;
+    max-width: 800px; /* Wider container */
     width: 90%;
     text-align: center;
-    min-height: 100px; /* Ensures container doesn't jump */
+    min-height: 120px; /* Slightly taller container */
     position: relative;
-    padding: 1rem;
-    border: 1px solid #D30000; /* Subtle red outline */
-    border-radius: 10px;
-    background-color: rgba(20, 20, 20, 0.5);
-    box-shadow: 0 0 20px rgba(211, 0, 0, 0.4);
+    padding: 1.5rem; /* More padding inside the box */
+    /* NEW: Dark, semi-transparent background for high contrast */
+    border: 2px solid rgba(211, 0, 0, 0.7); /* Thicker red outline */
+    border-radius: 12px;
+    background-color: rgba(10, 10, 10, 0.8); /* Very dark, solid background */
+    /* NEW: Stronger glow effect */
+    box-shadow: 0 0 25px rgba(255, 0, 0, 0.5); 
 }
 
 #shayari-text {
-    font-family: 'Tinos', serif; /* The new elegant font */
-    font-size: 1.5rem;
-    color: #f0f0f0;
-    line-height: 1.6;
+    font-family: 'Tinos', serif; 
+    font-size: 1.8rem; /* INCREASED FONT SIZE for readability */
+    color: #F8F8FF; /* Near-white color for max contrast */
+    line-height: 1.8; /* INCREASED line-height for better spacing */
     transition: opacity 0.5s ease-in-out, text-shadow 0.3s ease-out;
-    opacity: 0; /* Start invisible for the initial fade-in */
+    opacity: 0; 
 }
 
 /* Momentary glow effect on verse change */
 #shayari-text.fade-in-glow {
-    text-shadow: 0 0 10px #D30000, 0 0 20px #ff5555;
+    text-shadow: 0 0 15px #FF5555, 0 0 30px #FFEEEE; /* Brighter glow */
 }
 
 @media (max-width: 600px) {
     #shayari-text {
-        font-size: 1.2rem;
+        font-size: 1.3rem; /* Slightly larger on mobile too */
     }
 }
 
