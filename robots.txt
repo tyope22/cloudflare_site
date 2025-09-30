@@ -1,1 +1,4 @@
-User-agent: *Allow: /Sitemap: https://cloudflare-site-4wm.pages.dev/sitemap3.xml
+User-agent: 
+*Allow:
+
+/Sitemap: https://cloudflare-site-4wm.pages.dev/sitemap3.xml
