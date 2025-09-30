@@ -72,6 +72,10 @@
         }
 
         /* --- New Animation Keyframes and Class for Header --- */
+        /*  Defines the 'pop-in' animation: */
+     * It starts small (scale 0.95) and transparent (opacity 0) 
+     * and grows to full size and opacity.
+     */
         @keyframes pop-in {
             0% { opacity: 0; transform: scale(0.95); }
             100% { opacity: 1; transform: scale(1); }
@@ -99,55 +103,9 @@
     height: 100%;
     object-fit: cover; /* CRITICAL: Ensures the image covers the circle without distortion */
 }
-        
-        </style>
-    
     <!-- PASTE THIS NEW STYLE BLOCK INSIDE <head> -->
-<style>
-    /* * Defines the 'pop-in' animation: 
-     * It starts small (scale 0.95) and transparent (opacity 0) 
-     * and grows to full size and opacity.
-     */
-    @keyframes pop-in {
-        0% { opacity: 0; transform: scale(0.95); }
-        100% { opacity: 1; transform: scale(1); }
-    }
-    
-    /* Custom class to apply the animation to the header */
-    .animate-header {
-        animation: pop-in 1s ease-out 0.5s forwards; /* 1 second duration, wait 0.5 seconds */
-        opacity: 0; /* Ensures the header starts invisible before the animation runs */
-    }
-
-    /* --- MISSING ESSENTIAL STYLES --- */
-.about-button {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    border: 1px solid transparent; 
-    font-size: 1rem;
-    font-weight: 500;
-    border-radius: 9999px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    color: white;
-    background-color: #0d9488;
-    transition: all 150ms ease-in-out; 
-    margin-top: 1.5rem;
-    margin-bottom: 2.5rem;
-    text-decoration: none;
-}
-.about-button:hover {
-    background-color: #0f766e;
-    transform: scale(1.05);
-}
-
-.divider {
-    width: 25%;
-    margin: 3rem 0;
-    border-top: 2px solid #374151;
-}
-
-/* --- Footer Base Styling --- */
-.footer-style {
+    /* footer Base Styling --- */
+    .footer-style {
     position: relative; 
     margin-top: 4rem;
     width: 100%;
