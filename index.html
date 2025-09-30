@@ -322,51 +322,61 @@
         setInterval(updateClock, 1000);
         // --- SHAYARI ROTATION LOGIC ---
 
-// Global variables for Shayari state
 let shayariCollection = [];
 let currentShayariIndex = 0;
-const rotationInterval = 18000; // 18 seconds (18000 milliseconds)
-
-// This array is where you will paste your 500 verses.
-const internalFallbackShayari = [
-    "ज़िंदगी गुलज़ार है, ग़म को हटा कर देखिये।\nहर मोड़ पर ख़ुशी है, बस मुस्कुरा कर देखिये।", 
-    "तुम्हारी यादों की ख़ुशबू मेरे कमरे में रहती है।" 
-];
+const rotationInterval = 18000; // 18 seconds
 
 function setShayari(verse) {
     const textElement = document.getElementById('shayari-text');
     if (textElement) {
-        textElement.style.animation = 'fadeOut 0.5s forwards';
+        // Apply smooth fading effect for transitions
+        textElement.style.opacity = 0;
         setTimeout(() => {
             textElement.innerHTML = verse;
-            textElement.style.animation = 'fadeIn 1s forwards';
-        }, 500);
+            textElement.style.opacity = 1;
+        }, 500); // Wait 500ms for fade out to complete
     }
 }
 
 function rotateShayari() {
     if (shayariCollection.length === 0) return;
 
-    // Cycle through verses sequentially, wrapping back to 0
+    // Cycle through verses sequentially
     setShayari(shayariCollection[currentShayariIndex]);
     currentShayariIndex = (currentShayariIndex + 1) % shayariCollection.length;
 }
 
-function loadShayari() {
-    // We use the internalFallbackShayari array directly since external fetch is not possible here.
-    shayariCollection = internalFallbackShayari;
-    
-    if (shayariCollection.length > 0) {
-        // Start the rotation immediately and set the interval
-        rotateShayari();
-        setInterval(rotateShayari, rotationInterval);
-    } else {
-        setShayari("The Book of Verses is empty. Please add your collection!");
+async function loadShayari() {
+    try {
+        // This is the correct call for deployment. It looks for the file in the same directory.
+        const response = await fetch('./shayari.json');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+            shayariCollection = data;
+            console.log(`Successfully loaded ${shayariCollection.length} verses from shayari.json.`);
+        } else {
+            throw new Error("JSON file is empty or improperly formatted.");
+        }
+    } catch (error) {
+        // This catch block handles the expected failure in the preview environment.
+        console.error("Failed to load shayari.json. Using fallback message for deployment test.", error.message);
+        shayariCollection = ["The Book of Verses is empty or could not be loaded. (Check console for error)."];
     }
+    
+    // Start the rotation once data (or fallback) is assigned
+    rotateShayari();
+    setInterval(rotateShayari, rotationInterval);
 }
 
-// Start the Shayari loader
+// Start the Shayari loader when the page is ready
 loadShayari();
+
 
     </script>
 
