@@ -1,0 +1,1 @@
+User-agent: *Allow: /Sitemap: https://www.google.com/search?q=https://cloudflare-site-4wm.pages.dev/sitemap.xml
