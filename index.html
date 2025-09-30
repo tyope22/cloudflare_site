@@ -365,14 +365,15 @@ function rotateShayari() {
     setShayari(shayariCollection[currentShayariIndex]);
     currentShayariIndex = (currentShayariIndex + 1) % shayariCollection.length;
 }
-
+        
+// Initialize Shayari loading sequence
 async function loadShayari() {
     try {
         // Attempt to fetch the external file (will only work on your deployed server)
         const response = await fetch('./shayari.json');
         
         if (!response.ok) {
-            // If fetch fails (e.g., in this preview environment), the catch block handles it.
+            // If fetch fails, the catch block handles it.
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
@@ -384,12 +385,14 @@ async function loadShayari() {
         }
         
     } catch (error) {
-        // For deployment integrity, we leave this block empty.
-        // On your server, if the file fails, the array remains empty, and rotation stops.
+        // Log the failure to load the external file (expected in this preview)
         console.warn("Could not load external Shayari. If this is running in the preview, this is expected.");
     } finally {
         // Start the rotation sequence only after attempting to load the data
         if (shayariCollection.length > 0) {
+            // ✅ NEW LOGIC: Set a random starting index
+            currentShayariIndex = Math.floor(Math.random() * shayariCollection.length);
+            
             rotateShayari();
             setInterval(rotateShayari, rotationInterval);
         } else {
@@ -399,8 +402,6 @@ async function loadShayari() {
     }
 }
 
-// Initialize Shayari loading sequence
-loadShayari();
 
 
     </script>
