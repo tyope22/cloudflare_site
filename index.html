@@ -80,23 +80,25 @@
             opacity: 0; /* Ensures the header starts invisible before the animation runs */
         }
        
-        /* --- Find and REPLACE the existing .image-circle CSS with this --- */
+     /* --- Find and REPLACE the existing .image-circle CSS with this --- */
 .image-circle {
-    /* box-shadow removed as it might interfere with the boundary */
-    border-radius: 9999px; /* rounded-full equivalent */
-    overflow: hidden; /* CRITICAL: Hides anything outside the circle boundary */
-    width: 16rem; /* w-64 equivalent */
-    height: 16rem; /* h-64 equivalent */
+    /* Define the exact circular boundary */
+    width: 16rem; 
+    height: 16rem; 
+    border-radius: 50%; /* Using 50% is safer than 9999px for a perfect circle */
+    overflow: hidden; /* CRITICAL: Hides anything outside this boundary */
+    margin-bottom: 2.5rem;
     margin-left: auto;
     margin-right: auto;
-    /* Optional: Added a subtle border to define the circle edge better */
-    border: 3px solid rgba(211, 0, 0, 0.5); /* Semi-transparent red border */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); /* Added a subtle shadow back */
 }
 
+/* --- Find and REPLACE the existing .image-circle img CSS with this --- */
 .image-circle img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* CRITICAL: Ensures the image covers the circle without distortion */
+    display: block; /* Ensures the image behaves like a block element */
+    width: 100%; /* Force image to take 100% of container width */
+    height: 100%; /* Force image to take 100% of container height */
+    object-fit: cover; /* CRITICAL: Crops the image beautifully to cover the area */
 }
     </style>
     
