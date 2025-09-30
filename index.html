@@ -98,26 +98,7 @@
     height: 100%;
     object-fit: cover; /* CRITICAL: Ensures the image covers the circle without distortion */
 }
-        
-        </style>
-    
-    <!-- PASTE THIS NEW STYLE BLOCK INSIDE <head> -->
-<style>
-    /* * Defines the 'pop-in' animation: 
-     * It starts small (scale 0.95) and transparent (opacity 0) 
-     * and grows to full size and opacity.
-     */
-    @keyframes pop-in {
-        0% { opacity: 0; transform: scale(0.95); }
-        100% { opacity: 1; transform: scale(1); }
-    }
-    
-    /* Custom class to apply the animation to the header */
-    .animate-header {
-        animation: pop-in 1s ease-out 0.5s forwards; /* 1 second duration, wait 0.5 seconds */
-        opacity: 0; /* Ensures the header starts invisible before the animation runs */
-    }
-</style>
+    </style>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
