@@ -28,7 +28,21 @@
  
     <!-- Essential for responsiveness -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+ 
+    <!-- QR Code Library: Generates the QR image using JavaScript -->
+<script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+ 
+    /* --- QR Code Styling --- */
+#qrcode-container {
+    padding-bottom: 0.5rem;
+    display: flex; /* Use flex to center the generated image */
+    justify-content: center;
+}
+#qrcode-container canvas {
+    border: 4px solid white;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(97, 218, 251, 0.5); /* Subtle glow effect */
+}
     <style>
         body {
             /* Optional: Set a background for the whole page to make the clock stand out */
@@ -137,11 +151,15 @@
 
     <!-- Styling the horizontal rule for a clean division -->
     <hr class="w-1/4 my-12 border-t-2 border-gray-700">
-
-    <!-- Footer Section: Styled to complement the dark, futuristic theme -->
-    <footer class="mt-16 w-full p-4 bg-gray-800 text-center text-sm rounded-t-lg shadow-inner">
-        <p class="text-teal-400 font-mono">© 2024 Project Secret Website. All Digital Rights Reserved.</p>
-        <p class="text-gray-500 mt-1">Built with passion, HTML, pure CSS, and pure JavaScript.</p>
+    
+  <!-- Footer Section: Now using custom classes and including the QR Code container -->
+    <footer class="footer-style">
+    <div id="qrcode-container">
+        <!-- QR code image will be generated here -->
+    </div>
+    <p class="footer-text-primary">© 2024 Project Secret Website. All Digital Rights Reserved.</p>
+    <!-- Your desired accurate text goes here -->
+    <p class="footer-text-secondary">Built with passion, HTML, pure CSS, and pure JavaScript.</p>
     </footer>
 
     <script>
@@ -173,6 +191,27 @@
         // 4. Set an interval to run the updateClock function every 1000 milliseconds (1 second)
         // This is what makes it a "live" clock
         setInterval(updateClock, 1000);
+        // NEW FUNCTION: Generate the QR code for the current URL
+function generateQRCode() {
+    const url = window.location.href; 
+    
+    // Check if the library is loaded before proceeding
+    if (typeof QRCode !== 'undefined') {
+        new QRCode(document.getElementById("qrcode-container"), {
+            text: url,
+            width: 100, // Small, suitable size for the footer
+            height: 100,
+            colorDark : "#000000",
+            colorLight : "#f8fafc", // Near white for contrast
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    } else {
+        console.error('QR Code library not loaded.');
+    }
+}
+
+// 5. Generate the QR code after the page loads
+generateQRCode();
     </script>
 
 </body>
