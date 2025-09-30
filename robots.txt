@@ -1,4 +1,4 @@
 User-agent: 
 *Allow:
 
-/Sitemap: https://cloudflare-site-4wm.pages.dev/sitemap3.xml
+/Sitemap: https://cloudflare-site-4wm.pages.dev/sitemap4.xml
