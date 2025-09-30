@@ -195,6 +195,28 @@
     height: 100%;
     object-fit: cover; 
 }
+
+    /* --- Button Styling --- */
+    .about-button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid transparent; 
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: white;
+    background-color: #0d9488;
+    transition: all 150ms ease-in-out; 
+    margin-top: 1.5rem;
+    margin-bottom: 2.5rem; /* Separates it nicely from the content below */
+    text-decoration: none;
+}
+    .about-button:hover {
+    background-color: #0f766e;
+    transform: scale(1.05);
+}
+    
 </style>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -202,7 +224,7 @@
 </head>
 <body>
     <header><h2> for you </h2></header>
-<a href="about.html" class="inline-block px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-teal-600 hover:bg-teal-700 transition duration-150 transform hover:scale-105 mt-6 mb-10">
+<a href="about.html" class="about-button">
     Go to About Page
 </a>
     
