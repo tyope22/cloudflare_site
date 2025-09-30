@@ -2,9 +2,19 @@
     <meta charset="UTF-8">
     <title>Secret Website</title>
   
-    <!-- 1. The Description: This is the snippet shown below the title in search results -->
+  <!-- Standard Google SEO Description -->
     <meta name="description" content="A beautifully styled, dark-themed website featuring a captivating circular image, a massive glowing header, and a real-time digital clock.">
-    
+   
+    <!-- ⬇️ THIS IS THE CORRECT SPOT FOR OG TAGS ⬇️ -->
+    <meta property="og:title" content="Secret Website - A Digital Masterpiece">
+    <meta property="og:description" content="Check out this mesmerizing, neon-styled digital experience!">
+    <meta property="og:type" content="website">
+
+    <!-- Essential for responsiveness -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+   
     <style>
         body {
             /* Optional: Set a background for the whole page to make the clock stand out */
