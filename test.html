@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Secret Website</title>
+
+    <meta name="google-site-verification" content="bvy3sL8jC_pD1-peOD3jq-TDWdSQR6eCxxGn76RedhY" />
+    
+    <!-- Favicon Links -->
+    <link rel="icon" href="https://placehold.co/32x32/ff0000/ffffff.ico?text=S" type="image/x-icon">
+    <link rel="icon" type="image/png" href="https://placehold.co/192x192/ff0000/ffffff.png?text=S">
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/ff0000/ffffff.png?text=S">
+
+    <!-- SEO & Open Graph Tags -->
+    <meta name="description" content="A beautifully styled, dark-themed website featuring a captivating circular image, a massive glowing header, and a real-time digital clock.">
+    <meta property="og:title" content="Secret Website - A Digital Masterpiece">
+    <meta property="og:description" content="Check out this mesmerizing, neon-styled digital experience!">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://www.techtarget.com/whatis/definition/thumbnail">
+    <meta name="twitter:card" content="summary_large_image">
+ 
+    <!-- Essential for responsiveness -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- ALL CUSTOM STYLES ARE CONSOLIDATED HERE -->
+    <style>
+        body {
+            background-color: #111827;
+            color: #E3F2FD;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 20px 80px 20px; 
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        /* --- Header & Animation --- */
+        h1 {
+            color: #D30000;
+            margin-bottom: 20px;
+            font-size: 3.75rem; 
+            text-align: center;
+        }
+        @keyframes pop-in {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-header {
+            animation: pop-in 1s ease-out 0.5s forwards;
+            opacity: 0;
+        }
+        
+        /* --- Clock Styles --- */
+        #live-clock {
+            font-size: 38px;
+            font-weight: bold;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            padding: 20px 30px;
+            border: 2px solid #61dafb;
+            border-radius: 10px;
+            display: inline-block;
+            background-color: #84b5f0;
+            color: #D30000;
+            box-shadow: 0 0 15px rgba(97, 218, 251, 0.7);
+            letter-spacing: 2px;
+            transition: all 0.3s ease-in-out;
+            margin-bottom: 2.5rem;
+        }
+        #live-clock:hover {
+            box-shadow: 0 0 25px rgba(97, 218, 251, 1);
+            transform: scale(1.02);
+            background-color: #D3F1F2;
+        }
+
+        /* --- Image Styles (FIXED) --- */
+        .image-circle {
+            width: 16rem; 
+            height: 16rem; 
+            border-radius: 50%;
+            overflow: hidden;
+            margin-bottom: 2.5rem;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+            border: 3px solid rgba(211, 0, 0, 0.5); 
+        }
+        .image-circle img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* --- Button Styling --- */
+        .about-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid transparent; 
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: white;
+            background-color: #0d9488;
+            transition: all 150ms ease-in-out; 
+            margin-top: 1.5rem;
+            margin-bottom: 2.5rem;
+            text-decoration: none;
+        }
+        .about-button:hover {
+            background-color: #0f766e;
+            transform: scale(1.05);
+        }
+
+        /* --- Horizontal Rule Styling --- */
+        .divider {
+            width: 25%;
+            margin: 3rem 0;
+            border-top: 2px solid #374151;
+        }
+        
+        /* --- Content Section Styling --- */
+        .content-section {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 3rem;
+            padding: 20px;
+            background-color: #1f2937;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 2rem;
+        }
+        .content-header {
+            font-size: 2rem;
+            color: #61dafb;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 0.5rem;
+            text-align: center;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            text-align: left;
+        }
+        .data-card {
+            background-color: #374151;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 5px solid #D30000;
+        }
+        .data-card strong {
+            display: block;
+            font-size: 1.5rem;
+            color: #ffffff;
+        }
+        .data-card span {
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+
+
+        /* --- Footer Styling --- */
+        .footer-style {
+            position: relative; 
+            margin-top: 4rem;
+            width: 100%;
+            max-width: 1000px;
+            padding: 1rem;
+            background-color: #1f2937;
+            text-align: center;
+            font-size: 0.875rem;
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer-text-primary {
+            color: #2dd4bf;
+            font-family: monospace;
+        }
+        
+        .footer-text-secondary {
+            color: #9ca3af;
+            margin-top: 0.25rem;
+        }
+        
+        /* --- QR Code Image Styling (NEW & SIMPLE) --- */
+        .qr-image {
+            display: block;
+            margin: 0 auto 0.5rem auto; /* Center the image and add margin below */
+            width: 150px;
+            height: 150px;
+            border: 4px solid white;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(211, 0, 0, 0.7); /* Red glow for aesthetic */
+        }
+    </style>
+</head>
+<body>
+    <header><h2> for you </h2></header>
+
+    <a href="about.html" class="about-button">
+        Go to About Page
+    </a>
+    
+    <h1 class="animate-header">
+        Welcome to my website!
+    </h1>
+
+    <div class="image-circle">
+        <img 
+            src="assets/Rosee.jpg" 
+            alt="A beautiful rose" 
+            onerror="this.onerror=null; this.src='https://placehold.co/400x400/14b8a6/ffffff?text=Image+Placeholder'" 
+        />
+    </div>
+    
+    <!-- The Clock -->
+    <div id="live-clock">
+        Loading Clock...
+    </div>
+
+    <!-- Horizontal Rule -->
+    <hr class="divider">
+
+    <!-- Content Section -->
+    <section class="content-section">
+        <h2 class="content-header">
+            Key Project Insights
+        </h2>
+        <p style="margin-bottom: 1.5rem; color: #E3F2FD; text-align: center;">
+            This section provides critical data points on our recent development cycle. 
+            The goal is efficiency, stability, and growth.
+        </p>
+
+        <div class="data-grid">
+            <div class="data-card">
+                <strong>99.9%</strong>
+                <span>Uptime Since Last Deployment</span>
+            </div>
+            <div class="data-card">
+                <strong>0.8s</strong>
+                <span>Average Load Time (Global)</span>
+            </div>
+            <div class="data-card">
+                <strong>42</strong>
+                <span>Commits This Week</span>
+            </div>
+            <div class="data-card">
+                <strong>5/5</strong>
+                <span>Security Audit Score</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section: Using simple styled IMG tag -->
+    <footer class="footer-style">
+        <!-- 
+            Action Item: Replace the 'src' attribute below with the URL of your final, beautiful PNG QR code image.
+            This URL is a colorful placeholder: it uses your site's dark background color (1f2937) and red color (d30000).
+        -->
+        <img 
+            src="https://quickchart.io/qr?text=https://your-website-url.com&size=150&fill=rgb(211,0,0)&format=png&dark=d30000&light=1f2937&margin=4" 
+            alt="QR Code to share the website" 
+            class="qr-image"
+        />
+        
+        <p class="footer-text-primary">© 2024 Project Secret Website. All Digital Rights Reserved.</p>
+        <p class="footer-text-secondary">Built with passion, HTML, pure CSS, and pure JavaScript.</p>
+    </footer>
+
+    <script>
+        // 1. Clock Functionality (This is the only JS remaining)
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: true 
+            });
+            const clockElement = document.getElementById('live-clock');
+            clockElement.innerText = timeString;
+        }
+
+        // Initialization
+        updateClock(); 
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
