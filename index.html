@@ -205,40 +205,38 @@
             margin-top: 0.25rem;
             /* --- Shayari Display Styling --- */
             #shayari-container {
-    margin-top: 3rem;
-    max-width: 800px; /* Wider container */
-    width: 90%;
-    text-align: center;
-    min-height: 120px; /* Slightly taller container */
-    position: relative;
-    padding: 1.5rem; /* More padding inside the box */
-    /* NEW: Dark, semi-transparent background for high contrast */
-    border: 2px solid rgba(211, 0, 0, 0.7); /* Thicker red outline */
-    border-radius: 12px;
-    background-color: rgba(10, 10, 10, 0.8); /* Very dark, solid background */
-    /* NEW: Stronger glow effect */
-    box-shadow: 0 0 25px rgba(255, 0, 0, 0.5); 
-}
+                margin-top: 3rem;
+                max-width: 800px; /* Wider container */
+                width: 90%;
+                text-align: center;
+                min-height: 120px; /* Slightly taller container */
+                position: relative;
+                padding: 1.5rem; /* More padding inside the box */
+                /* KEY CHANGE: Dark, high-contrast background */
+                border: 2px solid rgba(211, 0, 0, 0.7); /* Thicker red outline */
+                border-radius: 12px;
+                background-color: rgba(10, 10, 10, 0.9); /* Very dark, opaque background */
+                /* KEY CHANGE: Stronger glow effect */
+                box-shadow: 0 0 25px rgba(255, 0, 0, 0.6); 
+            }
+            #shayari-text {
+                font-family: 'Tinos', serif; 
+                font-size: 1.8rem; /* BIGGER FONT SIZE */
+                color: #F8F8FF; /* Near-white color for max contrast */
+                line-height: 1.8; /* Better line-height */
+                transition: opacity 0.5s ease-in-out, text-shadow 0.3s ease-out;
+                opacity: 0; 
+            }
+            /* Momentary glow effect on verse change */
+            #shayari-text.fade-in-glow {
+                text-shadow: 0 0 15px #FF5555, 0 0 30px #FFEEEE; 
+            }
+            @media (max-width: 600px) {
+                #shayari-text {
+                    font-size: 1.3rem; 
+                }
+            }
 
-#shayari-text {
-    font-family: 'Tinos', serif; 
-    font-size: 1.8rem; /* INCREASED FONT SIZE for readability */
-    color: #F8F8FF; /* Near-white color for max contrast */
-    line-height: 1.8; /* INCREASED line-height for better spacing */
-    transition: opacity 0.5s ease-in-out, text-shadow 0.3s ease-out;
-    opacity: 0; 
-}
-
-/* Momentary glow effect on verse change */
-#shayari-text.fade-in-glow {
-    text-shadow: 0 0 15px #FF5555, 0 0 30px #FFEEEE; /* Brighter glow */
-}
-
-@media (max-width: 600px) {
-    #shayari-text {
-        font-size: 1.3rem; /* Slightly larger on mobile too */
-    }
-}
 
 </style>
     
