@@ -12,6 +12,8 @@
     <!-- Standard Google SEO Description -->
     <meta name="description" content="A beautifully styled, dark-themed website featuring a captivating circular image, a massive glowing header, and a real-time digital clock.">
    
+    <link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
     <!-- ⬇️ THIS IS THE CORRECT SPOT FOR OG TAGS ⬇️ -->
     <meta property="og:title" content="Secret Website - A Digital Masterpiece">
     <meta property="og:description" content="Check out this mesmerizing, neon-styled digital experience!">
@@ -204,38 +206,36 @@
             /* --- Shayari Display Styling --- */
             #shayari-container {
     margin-top: 3rem;
-    padding: 2rem;
     max-width: 700px;
     width: 90%;
-    min-height: 120px;
-    border: 2px solid #D30000; /* Red neon border */
-    border-radius: 15px;
-    background-color: rgba(255, 255, 255, 0.05); /* Very slight background */
     text-align: center;
-    box-shadow: 0 0 20px rgba(211, 0, 0, 0.4); /* Subtle red glow */
-}
-#shayari-text {
-    font-family: 'Georgia', serif;
-    font-size: 1.5rem; /* Large text for readability */
-    color: #E3F2FD; /* Light text color */
-    line-height: 1.6;
-    min-height: 100px; /* Ensures container doesn't collapse */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 1.5s ease-in-out; /* Smooth fading */
-    opacity: 1;
-    white-space: pre-line; /* Preserves \n for line breaks */
+    min-height: 100px; /* Ensures container doesn't jump */
+    position: relative;
+    padding: 1rem;
+    border: 1px solid #D30000; /* Subtle red outline */
+    border-radius: 10px;
+    background-color: rgba(20, 20, 20, 0.5);
+    box-shadow: 0 0 20px rgba(211, 0, 0, 0.4);
 }
 
-/* Keyframes for the fade effect */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+#shayari-text {
+    font-family: 'Tinos', serif; /* The new elegant font */
+    font-size: 1.5rem;
+    color: #f0f0f0;
+    line-height: 1.6;
+    transition: opacity 0.5s ease-in-out, text-shadow 0.3s ease-out;
+    opacity: 0; /* Start invisible for the initial fade-in */
 }
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
+
+/* Momentary glow effect on verse change */
+#shayari-text.fade-in-glow {
+    text-shadow: 0 0 10px #D30000, 0 0 20px #ff5555;
+}
+
+@media (max-width: 600px) {
+    #shayari-text {
+        font-size: 1.2rem;
+    }
 }
 
 </style>
@@ -320,20 +320,33 @@
         // 4. Set an interval to run the updateClock function every 1000 milliseconds (1 second)
         // This is what makes it a "live" clock
         setInterval(updateClock, 1000);
-        // --- SHAYARI ROTATION LOGIC ---
+        
+        // --- SHAYARI ROTATION LOGIC (WITH AESTHETICS) ---
 
 let shayariCollection = [];
 let currentShayariIndex = 0;
-const rotationInterval = 18000; // 18 seconds
+const rotationInterval = 18000; // 18 seconds (18000 milliseconds)
 
 function setShayari(verse) {
     const textElement = document.getElementById('shayari-text');
     if (textElement) {
-        // Apply smooth fading effect for transitions
+        // 1. Start fade out and remove glow class
         textElement.style.opacity = 0;
+        textElement.classList.remove('fade-in-glow');
+
         setTimeout(() => {
+            // 2. Change text content
             textElement.innerHTML = verse;
+            
+            // 3. Start fade in and apply momentary glow class
             textElement.style.opacity = 1;
+            textElement.classList.add('fade-in-glow');
+            
+            // 4. Remove glow after 1 second (CSS handles the fading transition)
+            setTimeout(() => {
+                textElement.classList.remove('fade-in-glow');
+            }, 1000);
+
         }, 500); // Wait 500ms for fade out to complete
     }
 }
@@ -348,33 +361,38 @@ function rotateShayari() {
 
 async function loadShayari() {
     try {
-        // This is the correct call for deployment. It looks for the file in the same directory.
+        // Attempt to fetch the external file (will only work on your deployed server)
         const response = await fetch('./shayari.json');
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            // If fetch fails (e.g., in this preview environment), the catch block handles it.
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        const data = await response.json();
-
-        if (Array.isArray(data) && data.length > 0) {
-            shayariCollection = data;
-            console.log(`Successfully loaded ${shayariCollection.length} verses from shayari.json.`);
-        } else {
-            throw new Error("JSON file is empty or improperly formatted.");
+        shayariCollection = await response.json();
+        
+        // Ensure data is an array
+        if (!Array.isArray(shayariCollection) || shayariCollection.length === 0) {
+            throw new Error("Shayari data is empty or malformed.");
         }
+        
     } catch (error) {
-        // This catch block handles the expected failure in the preview environment.
-        console.error("Failed to load shayari.json. Using fallback message for deployment test.", error.message);
-        shayariCollection = ["The Book of Verses is empty or could not be loaded. (Check console for error)."];
+        // For deployment integrity, we leave this block empty.
+        // On your server, if the file fails, the array remains empty, and rotation stops.
+        console.warn("Could not load external Shayari. If this is running in the preview, this is expected.");
+    } finally {
+        // Start the rotation sequence only after attempting to load the data
+        if (shayariCollection.length > 0) {
+            rotateShayari();
+            setInterval(rotateShayari, rotationInterval);
+        } else {
+            // Display a non-repeating message if no verses were loaded
+            setShayari("The Book of Verses is loading...");
+        }
     }
-    
-    // Start the rotation once data (or fallback) is assigned
-    rotateShayari();
-    setInterval(rotateShayari, rotationInterval);
 }
 
-// Start the Shayari loader when the page is ready
+// Initialize Shayari loading sequence
 loadShayari();
 
 
