@@ -334,7 +334,7 @@ let shayariCollection = [];
 let currentShayariIndex = 0;
 const rotationInterval = 18000; // 18 seconds (18000 milliseconds)
 
-function setShayari(verse) {
+function setShayari(verse, glowColor = '#FF0033') { // Default to red if color isn't provided
     const textElement = document.getElementById('shayari-text');
     if (textElement) {
         // 1. Start fade out and remove glow class
@@ -345,13 +345,15 @@ function setShayari(verse) {
             // 2. Change text content
             textElement.innerHTML = verse;
             
-            // 3. Start fade in and apply momentary glow class
+            // 3. Set the custom glow style dynamically based on the color passed in
+            textElement.style.textShadow = `0 0 10px ${glowColor}, 0 0 20px ${glowColor}`;
+
+            // 4. Start fade in
             textElement.style.opacity = 1;
-            textElement.classList.add('fade-in-glow');
-            
-            // 4. Remove glow after 1 second (CSS handles the fading transition)
+
+            // 5. Remove glow after a short delay
             setTimeout(() => {
-                textElement.classList.remove('fade-in-glow');
+                textElement.style.textShadow = 'none';
             }, 1000);
 
         }, 500); // Wait 500ms for fade out to complete
