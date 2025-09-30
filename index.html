@@ -383,28 +383,27 @@ function setBoxColor(color) {
 function rotateShayari() {
     if (shayariCollection.length === 0) return;
 
-    // 1. Cycle through verses sequentially (since the collection is already shuffled)
-    setShayari(shayariCollection[currentShayariIndex]);
-    currentShayariIndex = (currentShayariIndex + 1) % shayariCollection.length;
-
-    // 2. Pick a random color index from the list
+    // 1. Pick a random color index from the list
     const randomColorIndex = Math.floor(Math.random() * neonColors.length);
     const newColor = neonColors[randomColorIndex];
-    
-    // 3. Apply the new color to the box border and glow
+
+    // 2. Apply the new color to the box border and shadow
     setBoxColor(newColor);
+    
+    // 3. Cycle through verses and pass the new color to the setShayari function
+    setShayari(shayariCollection[currentShayariIndex], newColor);
+    currentShayariIndex = (currentShayariIndex + 1) % shayariCollection.length;
 }
-
-async function loadShayari() {
-    // Standard Fisher-Yates Shuffle Algorithm
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-
-    try {
+        async function loadShayari() {
+            // Standard Fisher-Yates Shuffle Algorithm
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+            
+            try {
         const response = await fetch('./shayari.json');
         
         if (!response.ok) {
