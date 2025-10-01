@@ -157,17 +157,13 @@ function startZoom() {
             // Clear the timeout if it hasn't fired yet
             clearTimeout(zoomTimeout);
             
-            // Immediately remove the class to revert the style
+            // 1. Remove the class (removes position, transform, zoom colors)
             clockElement.classList.remove('clock-zoom');
             
-            // Cleanup the dynamic scale factor style
+            // 2. Clear the dynamically set scale factor
             clockElement.style.removeProperty('--scale-factor');
             
-            // OPTIONAL: Force reset background/color to ensure it snaps back immediately
-            // Since the original color is defined in #live-clock, this should not be strictly necessary, 
-            // but is a good failsafe for touch systems.
-            clockElement.style.backgroundColor = ''; 
-            clockElement.style.color = ''; 
+            // We rely on the #live-clock CSS to immediately re-apply default colors and shadows.
         }
 
 // Apply the robust event listeners
