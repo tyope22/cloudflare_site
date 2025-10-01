@@ -1,7 +1,7 @@
 const foldingMechanism = document.getElementById('folding-mechanism');
 const leftCanvas = document.getElementById('left-side').querySelector('canvas');
 const rightCanvas = document.getElementById('right-side').querySelector('canvas');
-const pdfUrl'Greeting_card.pdf'; // <-- IMPORTANT: Change this to your PDF file path!
+const pdfUrl = 'Greeting_card.pdf'; // <-- IMPORTANT: Change this to your PDF file path!
 
 let pdfDoc = null; // Stores the PDF document object once loaded
 let currentPageIndex = 1; // Tracks the first page of the current 4-page spread (must be 1, 5, 9, etc.)
