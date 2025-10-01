@@ -72,6 +72,23 @@ body {
     height: 100%;
     object-fit: cover; /* CRITICAL: Ensures the image covers the circle without distortion */
 }
+
+    .image-circle {
+    border-radius: 9999px; /* rounded-full equivalent */
+    overflow: hidden; 
+    width: 16rem; 
+    height: 16rem; 
+    margin-left: auto;
+    margin-right: auto;
+    border: 3px solid rgba(211, 0, 0, 0.5); 
+}
+
+.image-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+}
+
     <!-- PASTE THIS NEW STYLE BLOCK INSIDE <head> -->
     /* footer Base Styling --- */
     .footer-style {
