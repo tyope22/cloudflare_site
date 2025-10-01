@@ -34,14 +34,15 @@ body {
 
         /* Optional: Add a hover effect for a bit more interactivity */
         #live-clock:hover {
-            box-shadow: 0 0 25px rgba(97, 218, 251, 1);
+            box-shadow: 0 0 50px rgba(97, 218, 251, 1); /* Enhanced glow on hover */
             
             /* Fullscreen Takeover Properties: */
             position: fixed; /* Takes it out of the normal document flow */
             top: 50%;        /* Centers vertically */
             left: 50%;       /* Centers horizontally */
-            transform: translate(-50%, -50%) scale(8); /* Scale it large and re-center */
-            font-size: 10vw; /* Make the font size relative to the viewport width */
+            transform: translate(-50%, -50%) scale(5); /* Large scale, but better for hover */
+            font-size: 8vw;  /* Makes the numbers huge relative to the screen width */
+            padding: 40px 60px; /* Adjust padding for the new size */
             z-index: 1000;   /* Ensure it appears above everything else */
             
             background-color: #000033; /* Dark Navy Blue */
