@@ -151,17 +151,11 @@ function endZoom() {
 
 // Apply the robust event listeners
 if (clockElement) {
+    // Only use mouse events for now
     clockElement.onmouseover = startZoom;
     clockElement.onmouseout = endZoom;
     
-    // FOR TOUCH DEVICES: Zoom and then instantly queue the exit zoom
-    clockElement.ontouchstart = () => {
-        startZoom();
-        // Automatically start the exit zoom after a short flash time (e.g., 500ms)
-        setTimeout(endZoom, 500); 
-    };
-    // The touch end event is no longer needed since we auto-exit
-    // clockElement.ontouchend = endZoom; 
+    // Touch handlers are removed/ignored until the clipping is fixed.
 }
 // --- End Stable Hover Zoom Logic ---
         
