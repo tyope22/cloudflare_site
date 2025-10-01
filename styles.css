@@ -31,22 +31,30 @@ body {
             transition: all 0.3s ease-in-out;
 }
 
-        /*/* Zoom effect applied by JavaScript for stability (Retains original aspect ratio) */
+        /* Zoom effect applied by JavaScript for stability (Retains original aspect ratio) */
 .clock-zoom {
     box-shadow: 0 0 70px rgba(97, 218, 251, 1); 
     
-    /* CRITICAL FIX: Use a massive scale factor to make it fill the width. 
-       This keeps the original rectangular aspect ratio intact. */
-    transform: scale(8); 
+    /* CRITICAL FIX: Use a massive scale factor (15x) to make it fill the width. */
+    transform: scale(15); 
     
-    /* Adjustments to ensure it appears on top and smoothly transitions */
-    position: relative; /* Keep it in the document flow (optional, but cleaner) */
+    /* Move it slightly out of the flow and ensure it's on top */
+    position: fixed; /* Use fixed for maximum control, but align it to the original center */
+    top: 50%;
+    left: 50%;
+    transform-origin: center center; /* Ensure scaling is done from the center */
+    
+    /* Combine translate and scale to center the massive scaled element */
+    /* We are keeping this simple: scale(15) should be enough to fill the width */
+    transform: translate(-50%, -50%) scale(15); 
+
     z-index: 9999;
     
-    /* Keep the transition on all properties */
+    /* Force the font to be huge and responsive */
+    font-size: 10vw; 
+    
     transition: all 0.3s ease-in-out; 
     
-    /* Reapply hover colors */
     background-color: #000033;
     color: #FFFFFF;
 }
