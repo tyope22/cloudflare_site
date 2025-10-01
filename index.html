@@ -45,6 +45,30 @@
             animation: pop-in 1s ease-out 0.5s forwards;
             opacity: 0; /* CRITICAL: Starts the element hidden */
         }
+        /* --- Live Clock Styling --- */
+        #live-clock {
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            border-radius: 0.75rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: monospace;
+    
+    /* CRITICAL FIXES FOR CENTERING AND LOAD STABILITY: */
+    display: table; /* Change from inline-block to table for margin auto centering */
+    margin-left: auto;
+    margin-right: auto;
+    
+    background-color: #84b5f0;
+    text-align: center;
+    color: #D30000;  
+    
+    /* Ensure this shadow is present for the default state */
+    box-shadow: 0 0 15px rgba(97, 218, 251, 0.7); /* Glow effect */
+    
+    cursor: pointer;
+    transition: all 0.3s ease-in-out; 
+}
     </style>
 </head>
     
