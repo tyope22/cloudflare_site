@@ -39,38 +39,22 @@ body {
             background-color: #000033; /* Dark Navy Blue */
             color: #FFFFFF;           /* Bright White Text */
         }
-
-        /* --- New Animation Keyframes and Class for Header --- */
-        /*  Defines the 'pop-in' animation: */
-     * It starts small (scale 0.95) and transparent (opacity 0) 
-     * and grows to full size and opacity.
-     */
-        @keyframes pop-in {
-            0% { opacity: 0; transform: scale(0.95); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        .animate-header {
-            animation: pop-in 1s ease-out 0.5s forwards; /* 1 second duration, wait 0.5 seconds */
-            opacity: 0; /* Ensures the header starts invisible before the animation runs */
-        }
-       
-        /* --- Find and REPLACE the existing .image-circle CSS with this --- */
+/* --- Find and REPLACE the existing .image-circle CSS with this --- */
 .image-circle {
-    /* box-shadow removed as it might interfere with the boundary */
-    border-radius: 9999px; /* rounded-full equivalent */
-    overflow: hidden; /* CRITICAL: Hides anything outside the circle boundary */
-    width: 16rem; /* w-64 equivalent */
-    height: 16rem; /* h-64 equivalent */
-    margin-left: auto;
-    margin-right: auto;
-    /* Optional: Added a subtle border to define the circle edge better */
-    border: 3px solid rgba(211, 0, 0, 0.5); /* Semi-transparent red border */
+            /* box-shadow removed as it might interfere with the boundary */
+            border-radius: 9999px; /* rounded-full equivalent */
+            overflow: hidden; /* CRITICAL: Hides anything outside the circle boundary */
+            width: 16rem; /* w-64 equivalent */
+            height: 16rem; /* h-64 equivalent */
+            margin-left: auto;
+            margin-right: auto;
+            /* Optional: Added a subtle border to define the circle edge better */
+            border: 3px solid rgba(211, 0, 0, 0.5); /* Semi-transparent red border */
 }
-
 .image-circle img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* CRITICAL: Ensures the image covers the circle without distortion */
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* CRITICAL: Ensures the image covers the circle without distortion */
 }
     <!-- PASTE THIS NEW STYLE BLOCK INSIDE <head> -->
     /* footer Base Styling --- */
