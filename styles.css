@@ -30,9 +30,9 @@ body {
             transition: transform 0.1s ease-out; 
         }
 
-        /* Optional: Add a hover effect for a bit more interactivity */
-        #live-clock:hover {
-            box-shadow: 0 0 50px rgba(97, 218, 251, 1);
+        /* Zoom effect applied by JavaScript for stability */
+        .clock-zoom {
+                    box-shadow: 0 0 50px rgba(97, 218, 251, 1);
             
             /* Fullscreen Takeover Properties: */
             position: fixed; 
@@ -45,7 +45,7 @@ body {
             
             /* Add a transition delay to stabilize the hover trigger */
             transition: all 0.3s ease-in-out;
-            transition-delay: 0.1s; /* Short delay to let the cursor settle */
+            
             
             background-color: #000033; 
             color: #FFFFFF;           
