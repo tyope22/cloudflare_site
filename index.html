@@ -131,13 +131,25 @@ let zoomTimeout;
 
 // Function to handle the start of the zoom
 function startZoom() {
-    // Clear any existing timeout to prevent flickering
     clearTimeout(zoomTimeout); 
     
-    // Use a short delay before zooming to ensure the mouse is settled on the clock
     zoomTimeout = setTimeout(() => {
+        // 1. Get the current width of the clock element
+        const clockWidth = clockElement.offsetWidth;
+        
+        // 2. Get the width of the viewport
+        const viewportWidth = window.innerWidth;
+        
+        // 3. Calculate the required scale factor: (Viewport Width / Clock Width)
+        // We use a small buffer (0.95) to ensure it doesn't clip right at the edge
+        const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
+        
+        // 4. Set the CSS variable on the element
+        clockElement.style.setProperty('--scale-factor', scaleFactor);
+
+        // 5. Apply the zoom class
         clockElement.classList.add('clock-zoom');
-    }, 150); // 150ms delay
+    }, 150); // 150ms delay for stability
 }
 
 // Function to handle the end of the zoom
