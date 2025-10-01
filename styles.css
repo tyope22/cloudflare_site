@@ -33,21 +33,27 @@ body {
 
         /* Zoom effect applied by JavaScript for stability */
 .clock-zoom {
-            box-shadow: 0 0 70px rgba(97, 218, 251, 1); 
+    box-shadow: 0 0 70px rgba(97, 218, 251, 1); 
     
-    /* Simplified Fullscreen Takeover Properties: */
+    /* Fullscreen Takeover Properties: */
     position: fixed; 
-    top: 50%;        
-    left: 50%;
-            z-index: 9999;   
+    top: 0;         /* Align to top edge */
+    left: 0;        /* Align to left edge */
     
-    /* CRITICAL FIXES FOR CLIPPING */
-    box-sizing: border-box; /* Ensures padding/border are inside the width/height */
-    width: 100vw; /* Forces the box width to match the viewport */
-    height: 100vh; /* Forces the box height to match the viewport */
+    box-sizing: border-box; 
+    width: 100vw; /* MUST be 100% of viewport width */
+    height: 100vh; /* MUST be 100% of viewport height */
+    
+    /* CRITICAL: Use Flexbox to perfectly center the text within the 100vh/100vw box */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
 
-    font-size: 8vw; /* Reduced font size slightly to fit text better */
-    padding: 10vh 5vw; /* Adjusted padding to use viewport units for better scaling */
+    /* Max size font that will definitely fill the screen */
+    font-size: 15vw; 
+    padding: 0; /* Remove padding */
+    
+    z-index: 9999;
     
     transition: all 0.3s ease-in-out; 
     
