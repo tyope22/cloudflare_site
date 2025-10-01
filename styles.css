@@ -7,7 +7,6 @@ body {
             display: flex; /* Flexbox for centering if desired */
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             min-height: 100vh; /* Full viewport height */
             margin: 0;
         }
@@ -34,14 +33,14 @@ body {
 
         /* Optional: Add a hover effect for a bit more interactivity */
         #live-clock:hover {
-            box-shadow: 0 0 50px rgba(97, 218, 251, 1); /* Enhanced glow on hover */
+            box-shadow: 0 0 50px rgba(97, 218, 251, 1);
             
             /* Fullscreen Takeover Properties: */
             position: fixed; /* Takes it out of the normal document flow */
             top: 50%;        /* Centers vertically */
             left: 50%;       /* Centers horizontally */
-            transform: translate(-50%, -50%) scale(5); /* Large scale, but better for hover */
-            font-size: 8vw;  /* Makes the numbers huge relative to the screen width */
+            transform: translate(-50%, -50%) scale(5); /* Large scale and re-center */
+            font-size: 8vw; /* Makes the font size relative to the viewport width */
             padding: 40px 60px; /* Adjust padding for the new size */
             z-index: 1000;   /* Ensure it appears above everything else */
             
