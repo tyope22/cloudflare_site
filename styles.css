@@ -31,27 +31,21 @@ body {
             transition: all 0.3s ease-in-out;
 }
 
-        /* Zoom effect applied by JavaScript for stability (Retains original aspect ratio) */
+        /* Zoom effect applied by JavaScript for stability (Dynamic Scale) */
 .clock-zoom {
     box-shadow: 0 0 70px rgba(97, 218, 251, 1); 
     
-    /* CRITICAL FIX: Use a massive scale factor (15x) to make it fill the width. */
-    transform: scale(15); 
+    /* CRITICAL FIX: Use a CSS Variable for dynamic scaling */
+    transform: translate(-50%, -50%) scale(var(--scale-factor)); 
     
-    /* Move it slightly out of the flow and ensure it's on top */
-    position: fixed; /* Use fixed for maximum control, but align it to the original center */
+    /* Ensure placement and visibility */
+    position: fixed; 
     top: 50%;
     left: 50%;
-    transform-origin: center center; /* Ensure scaling is done from the center */
-    
-    /* Combine translate and scale to center the massive scaled element */
-    /* We are keeping this simple: scale(15) should be enough to fill the width */
-    transform: translate(-50%, -50%) scale(15); 
-
     z-index: 9999;
     
-    /* Force the font to be huge and responsive */
-    font-size: 10vw; 
+    /* Increase the base font size to make the digits bigger relative to the container */
+    font-size: 10vw; /* Keep the font size huge and responsive */
     
     transition: all 0.3s ease-in-out; 
     
