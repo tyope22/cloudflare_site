@@ -162,13 +162,37 @@ function endZoom() {
 }
 
 // Apply the robust event listeners
-if (clockElement) {
-    // Only use mouse events for now
-    clockElement.onmouseover = startZoom;
-    clockElement.onmouseout = endZoom;
-    
-    // Ensure all touch handlers are gone/ignored for now
-}
+        if (clockElement) {
+            // Mouse Events: Use hover for continuous zoom (as desired on desktop)
+            clockElement.onmouseover = startZoom;
+            clockElement.onmouseout = endZoom;
+            
+            // Touch Events: Use a single tap to toggle zoom on/off (best mobile UX)
+            clockElement.ontouchstart = (event) => {
+                // Prevent the browser's default context menu or long-press delay
+                event.preventDefault(); 
+                
+                // Toggle the zoom state on tap
+                if (clockElement.classList.contains('clock-zoom')) {
+                    // If already zoomed, unzoom immediately
+                    endZoom(); 
+                } else {
+                    // If not zoomed, zoom in immediately
+                    // Note: We skip the stability timeout here for a snappy mobile tap experience
+                    
+                    // 1. Calculate the required scale factor
+                    const clockWidth = clockElement.offsetWidth;
+                    const viewportWidth = window.innerWidth;
+                    const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
+                    
+                    // 2. Set the CSS variable
+                    clockElement.style.setProperty('--scale-factor', scaleFactor);
+                    
+                    // 3. Apply the zoom class
+                    clockElement.classList.add('clock-zoom');
+                }
+            };
+        }
 // --- End Stable Hover Zoom Logic ---
         
         // --- SHAYARI ROTATION LOGIC (WITH AESTHETICS) ---
