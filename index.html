@@ -125,6 +125,39 @@
         // This is what makes it a "live" clock
         setInterval(updateClock, 1000);
         
+        // --- Stable Hover Zoom Logic ---
+const clockElement = document.getElementById('live-clock');
+let zoomTimeout;
+
+// Function to handle the start of the zoom
+function startZoom() {
+    // Clear any existing timeout to prevent flickering
+    clearTimeout(zoomTimeout); 
+    
+    // Use a short delay before zooming to ensure the mouse is settled on the clock
+    zoomTimeout = setTimeout(() => {
+        clockElement.classList.add('clock-zoom');
+    }, 150); // 150ms delay
+}
+
+// Function to handle the end of the zoom
+function endZoom() {
+    // Clear the timeout if it hasn't fired yet (preventing accidental zoom)
+    clearTimeout(zoomTimeout);
+    
+    // Immediately remove the class to revert the style
+    clockElement.classList.remove('clock-zoom');
+}
+
+// Apply the robust event listeners
+if (clockElement) {
+    clockElement.onmouseover = startZoom;
+    clockElement.onmouseout = endZoom;
+    clockElement.ontouchstart = startZoom; // Added touch support
+    clockElement.ontouchend = endZoom;
+}
+// --- End Stable Hover Zoom Logic ---
+        
         // --- SHAYARI ROTATION LOGIC (WITH AESTHETICS) ---
 
 let shayariCollection = [];
