@@ -1,0 +1,71 @@
+/* 1. Global Setup */
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+/* 2. The 3D World (The Stage) */
+#viewer-container {
+    /* Sets the depth of the 3D space */
+    perspective: 2000px;
+    width: 800px; /* Example total width of the open card */
+    height: 600px; /* Example height of the card */
+}
+
+/* 3. The Folding Mechanism (The Card Itself) */
+#folding-mechanism {
+    /* Enables 3D transformations */
+    transform-style: preserve-3d; 
+    
+    /* Position elements in the center */
+    position: relative;
+    width: 100%;
+    height: 100%;
+    
+    /* Center the pivot point */
+    transform-origin: 50% 50%; 
+    
+    /* Smooth animation for the fold */
+    transition: transform 1s ease-in-out; 
+}
+
+/* 4. The Pages (Two visible sides) */
+.page-side {
+    position: absolute;
+    width: 50%; /* Each page is half the container width */
+    height: 100%;
+    background-color: white;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    
+    /* Enable 3D transforms on the pages */
+    transform-style: preserve-3d;
+}
+
+/* Position the Left Page (Inner Left) */
+#left-side {
+    left: 0;
+    /* Rotation point is on the right edge (the spine) */
+    transform-origin: right center; 
+    /* Initially closed - hidden behind the right side */
+    transform: rotateY(0deg); 
+}
+
+/* Position the Right Page (Inner Right) */
+#right-side {
+    right: 0;
+    /* Rotation point is on the left edge (the spine) */
+    transform-origin: left center; 
+    /* Stays fixed at 0 degrees */
+    transform: rotateY(0deg); 
+}
+
+/* Class to trigger the main fold animation */
+.folding #left-side {
+    /* Flips the page to reveal the new page spread */
+    transform: rotateY(-180deg);
+}
