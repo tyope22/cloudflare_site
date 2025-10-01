@@ -38,9 +38,8 @@ body {
     /* Simplified Fullscreen Takeover Properties: */
     position: fixed; 
     top: 50%;        
-    left: 50%;       
-    transform: translate(-50%, -50%) scale(6); 
-    z-index: 9999;   
+    left: 50%;
+            z-index: 9999;   
     
     /* CRITICAL FIXES FOR CLIPPING */
     box-sizing: border-box; /* Ensures padding/border are inside the width/height */
