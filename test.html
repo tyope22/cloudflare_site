@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foldable Greeting Card Viewer</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf_viewer.css">
+    
+    <style>
+        /* 1. Global Setup */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            /* Use your actual website background color here if different from #f4f4f4 */
+            background-color: #f4f4f4; 
+            overflow-x: hidden; /* Prevent horizontal scrolling during rotation */
+        }
+
+        /* 2. The 3D World (The Stage) */ 
+        #viewer-container { 
+            perspective: 2000px; /* Strong 3D effect */
+            width: 95vw; 
+            height: 71.25vw; /* Maintain 4:3 aspect ratio (adjust as needed) */
+            max-width: 1200px; 
+            max-height: 900px; 
+        }
+
+        /* 3. The Folding Mechanism (The Card Itself) */
+        #folding-mechanism {
+            transform-style: preserve-3d; /* Enables 3D transformations */
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-origin: 50% 50%; 
+            transition: transform 1s ease-in-out; /* Smooth animation for the whole card flip */
+        }
+
+        /* 4. The Pages (The two large sides) */
+        .page-side {
+            position: absolute;
+            width: 50%; 
+            height: 100%;
+            background-color: white;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+             
+            transform-style: preserve-3d; /* CRITICAL: Enables 3D context for internal faces */
+            transition: transform 1s ease-in-out; 
+        }
+
+        /* 5. Positioning the Sides */
+        #left-side {
+            left: 0;
+            transform-origin: right center; /* Rotation point is the spine on the right edge */
+            transform: rotateY(0deg); 
+        }
+
+        #right-side {
+            right: 0;
+            transform-origin: left center; /* Rotation point is the spine on the left edge */
+            transform: rotateY(0deg); 
+        }
+
+
+        /* 6. Front and Back Faces (The 4-Page Illusion) */
+        .page-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Ensures content (PDF canvas) stays within bounds */
+            backface-visibility: hidden; /* CRITICAL: Hides the reverse side until rotated */
+        }
+
+        /* Front Face: Initially visible */
+        .page-face.front {
+            transform: rotateY(0deg); 
+        }
+
+        /* Back Face: Rotated 180 degrees so it faces front when the parent flips */
+        .page-face.back {
+            transform: rotateY(180deg);
+        }
+        /* Canvas Sizing: Ensures the PDF content fits perfectly */
+        .page-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+             
+            /* CRITICAL FIX: Forces the canvas to use its full available space
+               without stretching the content inside it (the PDF render). */
+            object-fit: contain; 
+        }
+
+        /* 7. The FOLDED State (Triggered by JS) */
+        #folding-mechanism.folded {
+            /* Rotate the entire card 180 degrees to show the next spread */
+            transform: rotateY(-180deg); 
+        }
+
+
+        /* 8. Mobile Responsiveness (Simplified Single-Page View) */
+        @media (max-width: 800px) {
+             
+            #viewer-container {
+                width: 98vw;
+                height: 73.5vw; 
+                perspective: 1000px; 
+            }
+             
+            .page-side {
+                width: 100%; 
+                left: 0 !important;
+                right: auto !important;
+                transform-origin: center center !important; 
+                opacity: 0;
+                visibility: hidden;
+            }
+             
+            #left-side {
+                /* This page is always visible on mobile */
+                opacity: 1;
+                visibility: visible;
+            }
+
+            /* Disable all folding animation on mobile for stability */
+            #folding-mechanism.folded {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+        
+    <div id="viewer-container">
+        <div id="folding-mechanism">
+                        
+            <div class="page-side" id="left-side">
+                <div class="page-face front">
+                    <canvas id="page-2-canvas" class="page-canvas"></canvas>
+                </div>
+                <div class="page-face back">
+                    <canvas id="page-1-canvas" class="page-canvas"></canvas>
+                </div>
+            </div>
+                        
+            <div class="page-side" id="right-side">
+                <div class="page-face front">
+                    <canvas id="page-3-canvas" class="page-canvas"></canvas>
+                </div>
+                <div class="page-face back">
+                    <canvas id="page-4-canvas" class="page-canvas"></canvas>
+                </div>
+            </div>
+                        
+        </div>
+    </div>
+
+    <button onclick="nextSpread()">Next Spread</button>
+        
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    
+    <script>
+        // =========================================================
+        // 1. VARIABLE DECLARATIONS
+        // =========================================================
+
+        const foldingMechanism = document.getElementById('folding-mechanism');
+
+        // Reference all four canvases by their specific face/page IDs
+        const page1Canvas = document.getElementById('page-1-canvas'); // Left Back (Cover)
+        const page2Canvas = document.getElementById('page-2-canvas'); // Left Front (Inner Left)
+        const page3Canvas = document.getElementById('page-3-canvas'); // Right Front (Inner Right)
+        const page4Canvas = document.getElementById('page-4-canvas'); // Right Back (Hidden Back)
+
+        // NOTE: Make sure 'Greeting_card.pdf' is accessible from the root of your web server!
+        const pdfUrl = 'Greeting_card.pdf';
+        let pdfDoc = null; 
+        let currentPageIndex = 1; // Tracks the first page of the current 4-page spread (1, 5, 9, etc.)
+
+
+        // =========================================================
+        // A. PDF Rendering Functions
+        // =========================================================
+
+        // Renders a single PDF page onto a single HTML Canvas
+        function renderPageToCanvas(pdf, pageNum, canvas) {
+            // Clear canvas if page number is out of bounds
+            if (pageNum < 1 || pageNum > pdf.numPages) {
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                return Promise.resolve();
+            }
+             
+            return pdf.getPage(pageNum).then(function(page) {
+                
+                // Get the dimensions of the parent element (the page-face div)
+                const parentWidth = canvas.parentElement.clientWidth;
+                 
+                // Use the parent's width to calculate the scale
+                let viewport = page.getViewport({ scale: 1 });
+                let scale = parentWidth / viewport.width;
+                viewport = page.getViewport({ scale: scale });
+
+                // Set canvas dimensions
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                let renderContext = {
+                    canvasContext: canvas.getContext('2d'),
+                    viewport: viewport
+                };
+                
+                // Return the promise from the render operation
+                return page.render(renderContext).promise; 
+            }).catch(function(error) {
+                console.error('Error rendering page ' + pageNum + ':', error);
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                // Important: still resolve the promise so the Promise.all chain doesn't break
+                return Promise.resolve();
+            });
+        }
+
+        // --- NEW/MODIFIED FUNCTION ---
+        // Renders all four pages of the current spread and returns a single Promise
+        function renderCurrentSpread(pdfDoc, startIndex) {
+            const promises = [
+                // P1: Left Back (Cover)
+                renderPageToCanvas(pdfDoc, startIndex, page1Canvas),
+                // P2: Left Front (Inner Left)
+                renderPageToCanvas(pdfDoc, startIndex + 1, page2Canvas),
+                // P3: Right Front (Inner Right)
+                renderPageToCanvas(pdfDoc, startIndex + 2, page3Canvas),
+                // P4: Right Back (Hidden Back)
+                renderPageToCanvas(pdfDoc, startIndex + 3, page4Canvas)
+            ];
+            // Wait for all four pages to render completely
+            return Promise.all(promises);
+        }
+
+        // Loads the PDF and initializes the first spread
+        function loadPdf(url) {
+            // Set up PDF.js worker path (redundant if worker is loaded via script tag, but good practice)
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+             
+            pdfjsLib.getDocument(url).promise.then(function(pdf) {
+                pdfDoc = pdf;
+                // Start rendering the first spread (Pages 1, 2, 3, 4)
+                renderCurrentSpread(pdfDoc, currentPageIndex);
+            }).catch(function(error) {
+                console.error('Error loading PDF:', error);
+                alert('Could not load PDF document. Check console for details.');
+            });
+        }
+
+
+        // =========================================================
+        // B. Content Update & Folding Logic (FIXED BUG)
+        // =========================================================
+
+        function nextSpread() {
+            // We need 4 pages for a spread, so check if N+4 pages are available
+            if (!pdfDoc || currentPageIndex + 4 > pdfDoc.numPages) {
+                console.log("End of document reached.");
+                // Optionally reset the index to 1 to loop
+                // currentPageIndex = 1;
+                return;
+            }
+             
+            // 1. Start the flip animation (CSS transition is 1 second)
+            foldingMechanism.classList.add('folded');
+             
+            // 2. Increment page index for the NEXT spread (1 -> 5, 5 -> 9)
+            currentPageIndex += 4; 
+             
+            // --- BUG FIX: Use Promises to ensure content rendering completes before snapping back ---
+            
+            // Step A: Wait for the CSS transition to finish (1000ms)
+            new Promise(resolve => setTimeout(resolve, 1000))
+                .then(() => {
+                    // Step B: Now that the card is flipped, render the new spread. 
+                    // This returns a Promise that resolves only after ALL 4 pages are drawn.
+                    return renderCurrentSpread(pdfDoc, currentPageIndex);
+                })
+                .then(() => {
+                    // Step C: Content is guaranteed to be ready. Snap the card back instantly.
+                    foldingMechanism.classList.remove('folded');
+                })
+                .catch(error => {
+                    console.error("Error during spread transition:", error);
+                    // Ensure the card flips back even if rendering failed
+                    foldingMechanism.classList.remove('folded');
+                });
+            // --- END BUG FIX ---
+        }
+
+        // Start the application by loading the PDF
+        window.onload = function() {
+            loadPdf(pdfUrl);
+        };
+    </script>
+
+</body>
+</html>
