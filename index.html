@@ -45,15 +45,6 @@
             animation: pop-in 1s ease-out 0.5s forwards;
             opacity: 0; /* CRITICAL: Starts the element hidden */
         }
-          /* --- Dynamic Zoom Class (Triggered by JS) --- */
-
-.clock-zoom {
-
-box-shadow: 0 0 70px rgba(97, 218, 251, 1);
-
-/* CRITICAL FIX: Use a CSS Variable for dynamic scaling */ transform: translate(-50%, -50%) scale(var(--scale-factor)); /* Ensure placement and visibility */ position: fixed; top: 50%; left: 50%; z-index: 9999; /* Keep the font size huge and responsive */ font-size: 10vw; transition: all 0.3s ease-in-out; /* FIX: This forces the color change */ background-color: #000033 !important; /* Dark Navy Blue */ color: #FFFFFF !important; /* Bright White Text */ 
-
-}
 
 /* --- CRITICAL CSS BLOCK (TO BE INLINED IN <head> OF index.html) --- */
 body {
