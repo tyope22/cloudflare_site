@@ -95,29 +95,39 @@ body {
 /* 8. Mobile Responsiveness (Simplified Single-Page View) */
 @media (max-width: 800px) {
     
+    /* 1. Adjust the main container for smaller screens */
     #viewer-container {
         width: 98vw;
-        height: 73.5vw; 
-        perspective: 1000px; 
+        height: 73.5vw; /* Maintain aspect ratio */
+        perspective: 1000px; /* Reduced perspective for smaller screens */
     }
     
-   .page-side { /* RESTORE 50% WIDTH AND VISIBILITY */
-       width: 50%; /* Revert to 50% width */
-       left: 0; /* Revert to default positioning */
-       right: auto;
-       transform-origin: right center; /* Ensure left-side rotation works */
-       opacity: 1 !important; /* Force both sides visible */
-       visibility: visible !important;
-   }
+    /* 2. Restore 50% width and visibility for both sides */
+    .page-side {
+        width: 50% !important; 
+        
+        /* Ensure both sides are fully visible */
+        opacity: 1 !important;
+        visibility: visible !important;
+        
+        /* Disable 3D transforms on the page sides to flatten them out */
+        transform: none !important;
+        transform-origin: center center !important; 
+    }
     
+    /* 3. Re-establish left/right positioning */
     #left-side {
-        /* This page is always visible on mobile */
-        opacity: 1;
-        visibility: visible;
+        left: 0 !important;
+        right: auto !important;
+    }
+    
+    #right-side {
+        right: 0 !important;
+        left: auto !important;
     }
 
-    /* Disable all folding animation on mobile for stability */
+    /* 4. Disable the main folding animation for stability */
     #folding-mechanism.folded {
-        transform: none;
+        transform: none !important; 
     }
 }
