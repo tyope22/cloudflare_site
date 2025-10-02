@@ -1,15 +1,5 @@
 /* styles.css */
-body {
-            /* Optional: Set a background for the whole page to make the clock stand out */
-            background-color: #111827; /* Dark background */
-            color: #E3F2FD; /* Light text for the body */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex; /* Flexbox for centering if desired */
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh; /* Full viewport height */
-            margin: 0;
-        }
+
 
         h1 {
             color: #D30000; /* A nice bright red  for headings */
@@ -58,32 +48,7 @@ body {
     margin-top: 0.25rem;
 }
 
-/* --- QR Code Image Styling (NEW & SIMPLE) --- */
-.qr-image {
-    display: block;
-    margin: 0 auto 0.5rem auto; /* Center the image */
-    width: 150px;
-    height: 150px;
-    border: 4px solid white;
-    border-radius: 5px;
-    box-shadow: 0 0 15px rgba(211, 0, 0, 0.7); /* Aesthetic red glow */
-}
 
-    .image-circle {
-    border-radius: 9999px; /* rounded-full equivalent */
-    overflow: hidden; 
-    width: 16rem; 
-    height: 16rem; 
-    margin-left: auto;
-    margin-right: auto;
-    border: 3px solid rgba(211, 0, 0, 0.5); 
-}
-
-.image-circle img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; 
-}
 
     /* --- Button Styling --- */
     .about-button {
@@ -111,54 +76,4 @@ body {
     margin: 3rem 0;
     border-top: 2px solid #374151;
 }
-/* --- Shayari Container Styling --- */
-#shayari-container {
-    /* Full width, edge-to-edge look */
-    width: 90vw;
-    max-width: 100%;
-    
-    /* Calculate height dynamically based on screen width for a responsive 2:1 aspect ratio */
-    height: 45vw; /* half of 90vw width */
-    max-height: 400px; /* Optional cap for very large screens */
-    
-    /* Centering the container */
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 2rem;
-    
-    /* Visuals and Structure */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 2rem;
-    border: 3px solid transparent; /* Placeholder border, will be colored by JS */
-    border-radius: 1.5rem; /* Smoother, bolder corners */
-    
-    /* Animation and effect */
-    transition: all 0.5s ease-in-out;
-    background-color: rgba(0, 0, 0, 0.4); /* Dark background with slight transparency */
-}
 
-/* --- Shayari Text Styling (Inside the Container) --- */
-#shayari-text {
-    font-family: 'Tinos', serif;
-    font-size: clamp(1.2rem, 3vw, 2rem); /* Responsive font size */
-    font-style: italic;
-    font-weight: 700;
-    color: #FFFFFF;
-    line-height: 1.5;
-    
-    /* Initial fade transition for the text change */
-    transition: opacity 0.5s ease-in-out;
-}
-
-             
-        @media (max-width: 600px) {
-            #shayari-container {
-                padding: 1rem;
-            }
-            #shayari-text {
-                font-size: 1.3rem;
-            }
-        }
