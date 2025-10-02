@@ -6,119 +6,104 @@ body {
     justify-content: center;
     height: 100vh;
     margin: 0;
-    background-color: #f4f4f4;
+    /* Use your actual website background color here if different from #f4f4f4 */
+    background-color: #f4f4f4; 
+    overflow-x: hidden; /* Prevent horizontal scrolling during rotation */
 }
 
 /* 2. The 3D World (The Stage) */ 
 #viewer-container { 
-    perspective: 2000px; /* Use viewport width (vw) for a dynamic size based on the screen width */ /* Set the max width to make the card as wide as possible */ 
-    width: 95vw; /* Set height relative to the width to maintain an ideal aspect ratio (e.g., 4:3) */ /* This formula ensures the book is wide but not overly tall */ 
-    height: 71.25vw; /* 71.25% of 95vw gives a 4:3 aspect ratio (4 units wide, 3 units high) */ /* Set maximum limits for large screens */ 
+    perspective: 2000px; /* Strong 3D effect */
+    width: 95vw; 
+    height: 71.25vw; /* Maintain 4:3 aspect ratio (adjust as needed) */
     max-width: 1200px; 
-    max-height: 900px; }
+    max-height: 900px; 
+}
 
 /* 3. The Folding Mechanism (The Card Itself) */
 #folding-mechanism {
-    /* Enables 3D transformations */
-    transform-style: preserve-3d; 
-    
-    /* Position elements in the center */
+    transform-style: preserve-3d; /* Enables 3D transformations */
     position: relative;
     width: 100%;
     height: 100%;
-    
-    /* Center the pivot point */
     transform-origin: 50% 50%; 
-    
-    /* Smooth animation for the fold */
-    transition: transform 1s ease-in-out; 
+    transition: transform 1s ease-in-out; /* Smooth animation for the whole card flip */
 }
 
-/* 4. The Pages (Two visible sides) */
+/* 4. The Pages (The two large sides) */
 .page-side {
     position: absolute;
-    width: 50%; /* Each page is half the container width */
+    width: 50%; 
     height: 100%;
     background-color: white;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
     
-    /* Enable 3D transforms on the pages */
-    transform-style: preserve-3d;
+    transform-style: preserve-3d; /* CRITICAL: Enables 3D context for internal faces */
+    transition: transform 1s ease-in-out; 
 }
 
-/* Position the Left Page (Inner Left) */
+/* 5. Positioning the Sides */
 #left-side {
     left: 0;
-    /* Rotation point is on the right edge (the spine) */
-    transform-origin: right center; 
-    /* Initially closed - hidden behind the right side */
+    transform-origin: right center; /* Rotation point is the spine on the right edge */
     transform: rotateY(0deg); 
 }
 
-/* Pages need to be set up as a flipping 3D container */
-.page-side {
-    /* ... existing positioning/sizing code ... */
-    transform-style: preserve-3d; /* CRITICAL: Enables 3D context for children */
-    transition: transform 1s ease-in-out; /* Match this transition to your JS setTimeout */
+#right-side {
+    right: 0;
+    transform-origin: left center; /* Rotation point is the spine on the left edge */
+    transform: rotateY(0deg); 
 }
 
-/* The front and back faces of each page */
+
+/* 6. Front and Back Faces (The 4-Page Illusion) */
 .page-face {
     position: absolute;
     width: 100%;
     height: 100%;
-    
-    /* CRITICAL: Hides the reverse side of the element during 3D rotation */
-    backface-visibility: hidden; 
+    overflow: hidden; /* Ensures content (PDF canvas) stays within bounds */
+    backface-visibility: hidden; /* CRITICAL: Hides the reverse side until rotated */
 }
 
-/* 1. The Front Face (Content initially visible) */
+/* Front Face: Initially visible */
 .page-face.front {
     transform: rotateY(0deg); 
 }
 
-/* 2. The Back Face (Content for the hidden side of the card) */
+/* Back Face: Rotated 180 degrees so it faces front when the parent flips */
 .page-face.back {
-    /* Rotate the back face 180 degrees so it faces the correct direction when flipped */
     transform: rotateY(180deg);
 }
 
-/* Position the Right Page (Inner Right) */
-#right-side {
-    right: 0;
-    /* Rotation point is on the left edge (the spine) */
-    transform-origin: left center; 
-    /* Stays fixed at 0 degrees */
-    transform: rotateY(0deg); 
+/* Canvas Sizing: Ensures the PDF content fits perfectly */
+.page-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
-/* Class to trigger the main fold animation */
-.folding #left-side {
-    /* Flips the page to reveal the new page spread */
-    transform: rotateY(-180deg);
+
+/* 7. The FOLDED State (Triggered by JS) */
+#folding-mechanism.folded {
+    /* Rotate the entire card 180 degrees to show the next spread */
+    transform: rotateY(-180deg); 
 }
 
-/* 6. Mobile Responsiveness: Single-page view on narrow screens */
+
+/* 8. Mobile Responsiveness (Simplified Single-Page View) */
 @media (max-width: 800px) {
     
-    /* Make the container full width on mobile */
     #viewer-container {
         width: 98vw;
-        height: 73.5vw; /* Maintain the 4:3 aspect ratio */
-        perspective: 1000px; /* Reduce 3D depth for simpler mobile view */
+        height: 73.5vw; 
+        perspective: 1000px; 
     }
     
-    /* Adjust the pages */
     .page-side {
-        width: 100%; /* Left page takes full width */
-        
-        /* On mobile, we only show the left page and hide the right one */
-        /* To simulate a single-page view */
+        width: 100%; 
         left: 0 !important;
         right: auto !important;
-        transform-origin: center center !important; /* Stop the folding animation */
-        
-        /* Hide the right page entirely on small screens */
+        transform-origin: center center !important; 
         opacity: 0;
         visibility: hidden;
     }
