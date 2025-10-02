@@ -55,6 +55,34 @@ body {
     transform: rotateY(0deg); 
 }
 
+/* Pages need to be set up as a flipping 3D container */
+.page-side {
+    /* ... existing positioning/sizing code ... */
+    transform-style: preserve-3d; /* CRITICAL: Enables 3D context for children */
+    transition: transform 1s ease-in-out; /* Match this transition to your JS setTimeout */
+}
+
+/* The front and back faces of each page */
+.page-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    
+    /* CRITICAL: Hides the reverse side of the element during 3D rotation */
+    backface-visibility: hidden; 
+}
+
+/* 1. The Front Face (Content initially visible) */
+.page-face.front {
+    transform: rotateY(0deg); 
+}
+
+/* 2. The Back Face (Content for the hidden side of the card) */
+.page-face.back {
+    /* Rotate the back face 180 degrees so it faces the correct direction when flipped */
+    transform: rotateY(180deg);
+}
+
 /* Position the Right Page (Inner Right) */
 #right-side {
     right: 0;
