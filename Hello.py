@@ -1,0 +1,2 @@
+original = bike
+print(original)
