@@ -1,12 +1,5 @@
 /* styles.css */
 
-
-        h1 {
-            color: #D30000; /* A nice bright red  for headings */
-            margin-bottom: 20px;
-        }
-
-    
     /* CRITICAL FIX: Use a CSS Variable for dynamic scaling */
     transform: translate(-50%, -50%) scale(var(--scale-factor)); 
     
