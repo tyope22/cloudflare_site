@@ -1,3 +1,36 @@
+
+const foldingMechanism = document.getElementById('folding-mechanism');
+
+// Reference all four canvases by their new IDs
+const page1Canvas = document.getElementById('page-1-canvas'); // Left Back (Cover)
+const page2Canvas = document.getElementById('page-2-canvas'); // Left Front
+const page3Canvas = document.getElementById('page-3-canvas'); // Right Front
+const page4Canvas = document.getElementById('page-4-canvas'); // Right Back
+
+const pdfUrl = 'Greeting_card.pdf'; 
+let pdfDoc = null; 
+let currentPageIndex = 1; // Start at PDF page 1
+
+// ... (Keep the loadPdf, renderPageToCanvas, and nextSpread functions as they are) ...
+
+// Update the updateContent function to map to the four canvases
+function updateContent() {
+    if (!pdfDoc) return;
+
+    // Renders the 4 sequential pages for the current spread:
+    // P1: Left Back (Cover)
+    renderPageToCanvas(pdfDoc, currentPageIndex, page1Canvas); 
+    
+    // P2: Left Front (Inner Left)
+    renderPageToCanvas(pdfDoc, currentPageIndex + 1, page2Canvas);
+    
+    // P3: Right Front (Inner Right)
+    renderPageToCanvas(pdfDoc, currentPageIndex + 2, page3Canvas);
+    
+    // P4: Right Back (Hidden)
+    renderPageToCanvas(pdfDoc, currentPageIndex + 3, page4Canvas);
+}
+
 const foldingMechanism = document.getElementById('folding-mechanism');
 const leftCanvas = document.getElementById('left-side').querySelector('canvas');
 const rightCanvas = document.getElementById('right-side').querySelector('canvas');
