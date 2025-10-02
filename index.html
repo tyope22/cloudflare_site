@@ -49,31 +49,7 @@
             animation: pop-in 1s ease-out 0.5s forwards;
             opacity: 0; /* CRITICAL: Starts the element hidden */
         }
-        /* --- Live Clock Styling --- */
-        #live-clock {
-            padding: 1rem 2rem;
-            margin-bottom: 2rem;
-            border-radius: 0.75rem;
-            font-size: 1.8rem;
-            font-weight: 700;
-            font-family: monospace;
-    
-    /* CRITICAL FIXES FOR CENTERING AND LOAD STABILITY: */
-    display: table; /* Change from inline-block to table for margin auto centering */
-    margin-left: auto;
-    margin-right: auto;
-    
-    background-color: #84b5f0;
-    text-align: center;
-    color: #D30000;  
-    
-    /* Ensure this shadow is present for the default state */
-    box-shadow: 0 0 15px rgba(97, 218, 251, 0.7); /* Glow effect */
-    
-    cursor: pointer;
-    transition: all 0.3s ease-in-out; 
-}
-        /* --- Dynamic Zoom Class (Triggered by JS) --- */
+          /* --- Dynamic Zoom Class (Triggered by JS) --- */
 
 .clock-zoom {
 
@@ -83,7 +59,104 @@ box-shadow: 0 0 70px rgba(97, 218, 251, 1);
 
 }
 
+/* --- CRITICAL CSS BLOCK (TO BE INLINED IN <head> OF index.html) --- */
+body {
+    background-color: #111827; /* Dark background */
+    color: #E3F2FD; /* Light text for the body */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex; 
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+h1 {
+    color: #D30000;
+    margin-bottom: 20px;
+}
+
+        /* --- Live Clock Styling --- */
+        #live-clock {
+            padding: 1rem 2rem;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 2rem;
+            border-radius: 0.75rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: monospace;
+            display: table;
+            background-color: #84b5f0;
+            text-align: center;
+            color: #D30000;
+            box-shadow: 0 0 15px rgba(97, 218, 251, 0.7);
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+}
+        
+
+.image-circle {
+    border-radius: 9999px;
+    overflow: hidden;
+    width: 16rem;
+    height: 16rem;
+    margin-left: auto;
+    margin-right: auto;
+    border: 3px solid rgba(211, 0, 0, 0.5);
+}
+
+.image-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#shayari-container {
+    width: 90vw;
+    max-width: 100%;
+    height: 45vw;
+    max-height: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    border: 3px solid transparent;
+    border-radius: 1.5rem;
+    transition: all 0.5s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+#shayari-text {
+    /* Assuming 'Tinos' is not a system font, it will need a fallback */
+    font-family: 'Tinos', serif; 
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    font-style: italic;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.5;
+    transition: opacity 0.5s ease-in-out;
+}
+
+@media (max-width: 600px) {
+    #shayari-container {
+        padding: 1rem;
+    }
+    #shayari-text {
+        font-size: 1.3rem;
+    }
+}
+/* --- END CRITICAL CSS BLOCK --- */
+
     </style>
+    
+    <link rel="preload" href="styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'"> 
+    <noscript><link rel="stylesheet" href="styles.css"></noscript>
+
 </head>
     
 </head>
