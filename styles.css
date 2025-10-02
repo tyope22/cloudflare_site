@@ -15,29 +15,7 @@ body {
             color: #D30000; /* A nice bright red  for headings */
             margin-bottom: 20px;
         }
-/* --- Live Clock Styling --- */
-#live-clock {
-    padding: 1rem 2rem;
-    margin-bottom: 2rem;
-    border-radius: 0.75rem;
-    font-size: 1.8rem;
-    font-weight: 700;
-    font-family: monospace;
-    display: inline-block;
-    background-color: #84b5f0;
-    text-align: center;
-    color: #D30000; 
-    
-    /* Ensure this shadow is present for the default state */
-    box-shadow: 0 0 15px rgba(97, 218, 251, 0.7); /* Glow effect */
-    
-    cursor: pointer;
-    transition: all 0.3s ease-in-out; 
-}
 
-        /* Zoom effect applied by JavaScript for stability (Dynamic Scale) */
-.clock-zoom {
-    box-shadow: 0 0 70px rgba(97, 218, 251, 1); 
     
     /* CRITICAL FIX: Use a CSS Variable for dynamic scaling */
     transform: translate(-50%, -50%) scale(var(--scale-factor)); 
