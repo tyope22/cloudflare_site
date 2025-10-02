@@ -22,17 +22,20 @@ let currentPageIndex = 1; // Tracks the first page of the current 4-page spread 
 // Renders a single PDF page onto a single HTML Canvas
 function renderPageToCanvas(pdf, pageNum, canvas) {
     if (pageNum < 1 || pageNum > pdf.numPages) {
-        // Clear canvas if page number is invalid (e.g., end of document)
         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
         return Promise.resolve();
     }
     
     return pdf.getPage(pageNum).then(function(page) {
         
-        // Calculate the scale based on the parent DIV's width for responsiveness
-        // This ensures the page always fills the canvas correctly
-        let scale = canvas.parentElement.clientWidth / page.getViewport({ scale: 1 }).width;
-        let viewport = page.getViewport({ scale: scale });
+        // --- REVISED SCALING LOGIC ---
+        // Get the dimensions of the parent element (the page-face div)
+        const parentWidth = canvas.parentElement.clientWidth;
+        
+        // Use the parent's width to calculate the scale
+        let viewport = page.getViewport({ scale: 1 });
+        let scale = parentWidth / viewport.width;
+        viewport = page.getViewport({ scale: scale });
 
         // Set canvas dimensions
         canvas.height = viewport.height;
