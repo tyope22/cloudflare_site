@@ -74,14 +74,16 @@ body {
 .page-face.back {
     transform: rotateY(180deg);
 }
-
 /* Canvas Sizing: Ensures the PDF content fits perfectly */
 .page-canvas {
     width: 100%;
     height: 100%;
     display: block;
+    
+    /* CRITICAL FIX: Forces the canvas to use its full available space
+       without stretching the content inside it (the PDF render). */
+    object-fit: contain; 
 }
-
 
 /* 7. The FOLDED State (Triggered by JS) */
 #folding-mechanism.folded {
