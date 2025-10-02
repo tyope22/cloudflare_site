@@ -7,26 +7,30 @@
     <link rel="stylesheet" href="styles2.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf_viewer.css">
 </head>
-<body>
-    <div id="viewer-container">
-        <div id="folding-mechanism">
-            
-            <div class="page-side" id="left-side">
-                <canvas id="page-1-canvas" class="page-canvas"></canvas>
-            </div>
-            
-            <div class="page-side" id="right-side">
+<div id="viewer-container">
+    <div id="folding-mechanism">
+        
+        <div class="page-side" id="left-side">
+            <div class="page-face front">
                 <canvas id="page-2-canvas" class="page-canvas"></canvas>
             </div>
-            
+            <div class="page-face back">
+                <canvas id="page-1-canvas" class="page-canvas"></canvas>
+            </div>
         </div>
+        
+        <div class="page-side" id="right-side">
+            <div class="page-face front">
+                <canvas id="page-3-canvas" class="page-canvas"></canvas>
+            </div>
+            <div class="page-face back">
+                <canvas id="page-4-canvas" class="page-canvas"></canvas>
+            </div>
+        </div>
+        
     </div>
-    
-    <button onclick="nextSpread()">Next</button>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js"></script>
-    
-    <script src="script.js"></script>
-    </body>
+</div>
+
+<button onclick="nextSpread()">Next Spread</button>
+    <hr>
 </html>
