@@ -1,54 +1,40 @@
+// =========================================================
+// 1. VARIABLE DECLARATIONS (Using the new 4-canvas structure)
+// =========================================================
 
 const foldingMechanism = document.getElementById('folding-mechanism');
 
-// Reference all four canvases by their new IDs
+// Reference all four canvases by their specific face/page IDs
 const page1Canvas = document.getElementById('page-1-canvas'); // Left Back (Cover)
-const page2Canvas = document.getElementById('page-2-canvas'); // Left Front
-const page3Canvas = document.getElementById('page-3-canvas'); // Right Front
-const page4Canvas = document.getElementById('page-4-canvas'); // Right Back
+const page2Canvas = document.getElementById('page-2-canvas'); // Left Front (Inner Left)
+const page3Canvas = document.getElementById('page-3-canvas'); // Right Front (Inner Right)
+const page4Canvas = document.getElementById('page-4-canvas'); // Right Back (Hidden Back)
 
-const pdfUrl = 'Greeting_card.pdf'; 
+const pdfUrl = 'Greeting_card.pdf'; // Corrected path/syntax
 let pdfDoc = null; 
-let currentPageIndex = 1; // Start at PDF page 1
+let currentPageIndex = 1; // Tracks the first page of the current 4-page spread (1, 5, 9, etc.)
 
-// ... (Keep the loadPdf, renderPageToCanvas, and nextSpread functions as they are) ...
 
-// Update the updateContent function to map to the four canvases
-function updateContent() {
-    if (!pdfDoc) return;
-
-    // Renders the 4 sequential pages for the current spread:
-    // P1: Left Back (Cover)
-    renderPageToCanvas(pdfDoc, currentPageIndex, page1Canvas); 
-    
-    // P2: Left Front (Inner Left)
-    renderPageToCanvas(pdfDoc, currentPageIndex + 1, page2Canvas);
-    
-    // P3: Right Front (Inner Right)
-    renderPageToCanvas(pdfDoc, currentPageIndex + 2, page3Canvas);
-    
-    // P4: Right Back (Hidden)
-    renderPageToCanvas(pdfDoc, currentPageIndex + 3, page4Canvas);
-}
-
-const foldingMechanism = document.getElementById('folding-mechanism');
-const leftCanvas = document.getElementById('left-side').querySelector('canvas');
-const rightCanvas = document.getElementById('right-side').querySelector('canvas');
-const pdfUrl = 'Greeting_card.pdf'; // <-- IMPORTANT: Change this to your PDF file path!
-
-let pdfDoc = null; // Stores the PDF document object once loaded
-let currentPageIndex = 1; // Tracks the first page of the current 4-page spread (must be 1, 5, 9, etc.)
-
-// -----------------------------------------------------------------
-// A. PDF Rendering Functions
-// -----------------------------------------------------------------
+// =========================================================
+// A. PDF Rendering Functions (Updated to use dynamic scaling)
+// =========================================================
 
 // Renders a single PDF page onto a single HTML Canvas
 function renderPageToCanvas(pdf, pageNum, canvas) {
-    pdf.getPage(pageNum).then(function(page) {
-        let viewport = page.getViewport({ scale: 1.5 });
+    if (pageNum < 1 || pageNum > pdf.numPages) {
+        // Clear canvas if page number is invalid (e.g., end of document)
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        return Promise.resolve();
+    }
+    
+    return pdf.getPage(pageNum).then(function(page) {
         
-        // Ensure the canvas size matches the page aspect ratio
+        // Calculate the scale based on the parent DIV's width for responsiveness
+        // This ensures the page always fills the canvas correctly
+        let scale = canvas.parentElement.clientWidth / page.getViewport({ scale: 1 }).width;
+        let viewport = page.getViewport({ scale: scale });
+
+        // Set canvas dimensions
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
@@ -56,7 +42,8 @@ function renderPageToCanvas(pdf, pageNum, canvas) {
             canvasContext: canvas.getContext('2d'),
             viewport: viewport
         };
-        page.render(renderContext);
+        // Render the page and return the promise
+        return page.render(renderContext).promise; 
     }).catch(function(error) {
         console.error('Error rendering page ' + pageNum + ':', error);
         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
@@ -74,55 +61,54 @@ function loadPdf(url) {
         updateContent(); 
     }).catch(function(error) {
         console.error('Error loading PDF:', error);
-        alert('Could not load PDF document.');
+        alert('Could not load PDF document. Check console for details.');
     });
 }
 
 
-// -----------------------------------------------------------------
-// B. Content Update & Folding Logic
-// -----------------------------------------------------------------
+// =========================================================
+// B. Content Update & Folding Logic (The 4-Page Map)
+// =========================================================
 
 // Updates the canvas content for the current spread
 function updateContent() {
     if (!pdfDoc) return;
 
-    // This is the core logic for the 4-page spread:
-    // Left Canvas (Inner Left): Renders currentPageIndex + 1
-    // Right Canvas (Inner Right): Renders currentPageIndex + 2
+    // Renders the 4 sequential pages for the current spread:
+    // P1: Left Back (Cover) -> Visible when FLIPPED
+    renderPageToCanvas(pdfDoc, currentPageIndex, page1Canvas); 
     
-    // We render the Inner Spread (N+1 and N+2) onto the visible side
-    renderPageToCanvas(pdfDoc, currentPageIndex + 1, leftCanvas);
-    renderPageToCanvas(pdfDoc, currentPageIndex + 2, rightCanvas);
+    // P2: Left Front (Inner Left) -> Visible INITIALLY
+    renderPageToCanvas(pdfDoc, currentPageIndex + 1, page2Canvas);
     
-    // NOTE: The outer pages (N and N+3) are rendered onto the BACK 
-    // faces of the canvases. That complex part is for later. 
+    // P3: Right Front (Inner Right) -> Visible INITIALLY
+    renderPageToCanvas(pdfDoc, currentPageIndex + 2, page3Canvas);
+    
+    // P4: Right Back (Hidden Back) -> Visible when FLIPPED
+    renderPageToCanvas(pdfDoc, currentPageIndex + 3, page4Canvas);
 }
 
 function nextSpread() {
+    // We need 4 pages for a spread, so check if N+4 pages are available
     if (!pdfDoc || currentPageIndex + 4 > pdfDoc.numPages) {
-        console.log("End of document or not loaded.");
+        console.log("End of document reached.");
         return;
     }
     
     // 1. Start the flip animation
     foldingMechanism.classList.add('folded');
     
-    // 2. Increment the page index for the NEXT spread
+    // 2. Increment the page index for the NEXT spread (1 -> 5, 5 -> 9)
     currentPageIndex += 4; 
     
     // 3. After the animation completes (1s transition in CSS),
-    //    update the content to the new pages (N+4, N+5)
+    //    update the content to the new pages (N+4, N+5, N+6, N+7)
     setTimeout(() => {
         updateContent(); 
         
-        // 4. Remove the 'folded' class to prepare for the next flip
+        // 4. Remove the 'folded' class to snap the view back to 0deg (unflipped) 
+        //    This immediately shows the newly rendered content of the NEXT spread
         foldingMechanism.classList.remove('folded');
-        
-        // --- COMPLEX PART: ---
-        // You would normally wait for the pages to render, and then 
-        // immediately rotate back 180 degrees here to hide the 'new' 
-        // back side and show the 'new' front side.
         
     }, 1000); // Wait for the 1-second CSS transition
 }
