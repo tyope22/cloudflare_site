@@ -398,14 +398,33 @@ function setShayari(verse, glowColor = '#FF0033') { // Default to red if color i
 
 // Array of beautiful neon/deep colors for the box change
 const neonColors = [
-    '#FF33CC', // Hot Pink
-    '#33FFCC', // Cyan
-    '#FFFF33', // Neon Yellow
-    '#FF6600', // Neon Orange
-    '#9933FF', // Deep Purple
-    '#00FF99', // Emerald Green
-    '#FF0033'  // Bright Red
-];
+ // --- Existing Neon/Bright Tones ---
+ '#FF33CC', // Hot Pink
+ '#33FFCC', // Cyan
+ '#FFFF33', // Neon Yellow
+ '#FF6600', // Neon Orange
+ '#9933FF', // Deep Purple
+ '#00FF99', // Emerald Green
+   
+ // --- New Electric/Vibrant Tones --- 
+ '#0000FF', // Electric Blue 
+ '#FF00FF', // Fuchsia / Magenta 
+ '#00FF00', // Pure Lime Green 
+ '#FF4500', // Orange-Red (Deep Neon) 
+ '#ADFF2F', // Green-Yellow (Electric Spring Green) 
+ '#40E0D0', // Turquoise (Vibrant Aqua) 
+ '#FFA500', // Pure Orange 
+ 
+ // --- New Deep/Rich Jewel Tones (for contrast) --- 
+ '#800080', // Royal Purple 
+ '#008080', // Teal 
+ '#8B4513', // Saddle Brown (A deep, grounding contrast) 
+ '#FFD700', // Gold / Deep Yellow 
+ '#556B2F', // Dark Olive Green 
+ '#4682B4', // Steel Blue 
+ '#DC143C', // Crimson (Deep Red) 
+ '#FF0033'  // Bright Red
+ ];
 
 function setBoxColor(color) {
     const container = document.getElementById('shayari-container');
