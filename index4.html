@@ -16,7 +16,7 @@
 
     <div id="root" class="w-full max-w-5xl mx-auto">
         <h1 class="text-4xl font-extrabold text-indigo-700 mb-2">PDF Compression & Cropping Tool</h1>
-        <p class="text-gray-600 mb-8">This version uses **Content Scaling** to aggressively reduce file size. Use a lower scale factor for maximum reduction.</p>
+        <p class="text-gray-600 mb-8">This tool uses **Content Scaling** to aggressively reduce file size. Use a lower scale factor for maximum reduction.</p>
 
         <!-- Status Message -->
         <div id="status-box" class="bg-indigo-100 border-l-4 border-indigo-500 text-indigo-700 p-4 rounded-lg mb-6 shadow">
@@ -77,7 +77,7 @@
                             value="0.9"
                             class="w-full h-2 bg-indigo-100 rounded-lg appearance-none cursor-pointer"
                         />
-                        <p id="scaleTip" class="text-xs text-gray-500 mt-2 italic">A smaller scale (e.g., 0.5) aggressively shrinks the page content, offering maximum size reduction but potentially making text or images much smaller on the page.</p>
+                        <p id="scaleTip" class="text-xs text-gray-500 mt-2 italic">A smaller scale (e.g., 0.5) aggressively shrinks the page content, offering maximum size reduction.</p>
                     </div>
                 </div>
             </div>
@@ -191,7 +191,6 @@
             updateStatus(`Loading ${file.name}...`);
 
             try {
-                // Ignore encryption to attempt loading files that might be password protected
                 const arrayBuffer = await file.arrayBuffer();
                 pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
 
@@ -206,7 +205,7 @@
                 cropHeightInput.value = Math.round(height);
 
                 optimizeBtn.disabled = false;
-                updateStatus(`PDF loaded successfully. Set your options (especially Scale Factor) and click 'Optimize'.`);
+                updateStatus(`PDF loaded successfully. Set your options and click 'Optimize'.`);
 
             } catch (error) {
                 console.error(error);
@@ -216,7 +215,7 @@
             }
         });
 
-        // --- Optimization Logic (Refactored) ---
+        // --- Optimization Logic (Stability Fixes) ---
         
         optimizeBtn.addEventListener('click', async () => {
             if (!pdfDoc) {
@@ -225,7 +224,7 @@
             }
 
             optimizeBtn.disabled = true;
-            updateStatus('Aggressively optimizing PDF by scaling content... This may take a moment.', 'info');
+            updateStatus('Aggressively optimizing PDF by scaling content... This may take a moment for large files.', 'info');
 
             try {
                 const targetWidth = parseFloat(cropWidthInput.value);
@@ -241,14 +240,15 @@
                 // Create a new PDF document to transfer and transform content
                 const newPdfDoc = await PDFDocument.create();
                 
-                const pages = pdfDoc.getPages();
+                const originalPageIndices = pdfDoc.getPageIndices();
                 
-                for (const [index, page] of pages.entries()) {
-                    updateStatus(`Processing page ${index + 1} of ${pages.length}...`, 'info');
+                for (const index of originalPageIndices) {
+                    updateStatus(`Processing page ${index + 1} of ${originalPageIndices.length}...`, 'info');
                     
-                    // 1. Copy the page and its content into the new document
-                    const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [index]);
-                    const { width: pageW, height: pageH } = copiedPage.getSize();
+                    // 1. Get the content of the original page
+                    const [embeddedPage] = await newPdfDoc.embedPages([pdfDoc.getPages()[index]]);
+                    
+                    const { width: pageW, height: pageH } = embeddedPage.size;
 
                     // 2. Add a new page with the user's desired output dimensions
                     const newPage = newPdfDoc.addPage([targetWidth, targetHeight]);
@@ -257,35 +257,28 @@
                     const scaledW = pageW * scaleFactor;
                     const scaledH = pageH * scaleFactor;
                     
+                    // Center the scaled content within the new page size
                     const drawX = (targetWidth - scaledW) / 2;
                     const drawY = (targetHeight - scaledH) / 2;
 
                     // 4. Draw the original page content onto the new page at the reduced scale
                     // This is the CRITICAL step for size reduction
-                    newPage.drawPage(copiedPage, {
+                    newPage.drawPage(embeddedPage, {
                         x: drawX,
                         y: drawY,
                         width: scaledW,
                         height: scaledH,
                     });
 
-                    // 5. Apply Cropping (MediaBox/CropBox)
-                    // Set the visible area to be the targetWidth/Height (the new page size)
+                    // 5. Ensure the final visible area is set correctly (CropBox/MediaBox)
+                    // The new page is already sized [targetWidth, targetHeight], so we confirm the box is reset.
                     newPage.setMediaBox(0, 0, targetWidth, targetHeight); 
                     newPage.setCropBox(0, 0, targetWidth, targetHeight);
-                    
-                    // Note on Anchor Cropping: By centering the content (drawX/drawY) and 
-                    // setting the MediaBox to the target size (0,0), we ensure the content
-                    // is scaled down and centered within the new frame. For aggressive 
-                    // cropping (using the cropOrigin), complex translation logic would 
-                    // be needed, but the current centering/scaling handles most use cases.
                 }
 
                 // 6. Save the new document with maximal compression
                 const arrayBuffer = await newPdfDoc.save({
                     useCompression: true,
-                    // If target is very small, we skip object streams for max compatibility
-                    // useObjectStreams: newSizeKB > 500, 
                 });
                 
                 // 7. Create Blob and Download
@@ -311,7 +304,7 @@
 
                 if (targetKB > 0) {
                     if (newSizeKB > targetKB) {
-                        resultMessage = `Warning: File size (${newSizeKB.toFixed(0)} KB) is still above your target of ${targetKB} KB. You MUST use a smaller Content Scale Factor (e.g., 0.5) for extreme size reduction.`;
+                        resultMessage = `Warning: File size (${newSizeKB.toFixed(0)} KB) is still above your target of ${targetKB} KB. Try reducing the Content Scale Factor further (e.g., 0.5 or lower).`;
                         resultType = 'error';
                     } else {
                          resultMessage = `Success: Target size of ${targetKB} KB was met! Final size: ${newFileSizeSpan.textContent}.`;
@@ -323,7 +316,8 @@
 
             } catch (error) {
                 console.error("Optimization Error:", error);
-                updateStatus('An error occurred during optimization. Check console for details.', 'error');
+                // Catch the error and give a helpful message
+                updateStatus('An optimization error occurred. This is common for very complex PDFs. Try refreshing or reducing the scale factor significantly.', 'error');
                 optimizeBtn.disabled = false;
             }
         });
