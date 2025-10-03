@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <meta name="google-site-verification" content="bvy3sL8jC_pD1-peOD3jq-TDWdSQR6eCxxGn76RedhY" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preload" as="image" href="assets/optimized_rose.jpg" fetchpriority="high">
@@ -135,8 +134,8 @@ h1 {
 }
 
 #shayari-text {
-    /* Assuming 'Tinos' is not a system font, it will need a fallback */
-    font-family: 'Tinos', serif; 
+    /* FIX: Using a high-performance system serif font stack */
+    font-family: 'Georgia', 'Times New Roman', serif;
     font-size: clamp(1.2rem, 3vw, 2rem);
     font-style: italic;
     font-weight: 700;
@@ -198,9 +197,10 @@ h1 {
     Learn More About Me
 </a>
    
-<!-- The Clock: Applying dark, modern colors with Tailwind -->
-<div id="live-clock" class="mb-10 bg-gray-900 text-red-500 shadow-2xl neon-glow">
-    Loading Clock...
+<!-- The Clock: Now styled purely by custom CSS in the <style> block -->
+<div id="live-clock">
+    Loading Clock...
+</div>
 
 </div>
 <!-- Shayari Rotating Display -->
