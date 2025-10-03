@@ -34,7 +34,36 @@
                     accept="application/pdf" 
                     class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 p-2.5 hover:bg-gray-100 flex-grow"
                 />
-                <div id="pdfInfo" class="mt-4 text-sm text-gray-600 space-y-1">
+                
+                <!-- Page Range Selector -->
+                <div class="mt-4 border-t pt-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Process Page Range</h4>
+                    <div class="flex space-x-2">
+                        <div class="w-1/2">
+                            <label for="startPage" class="block text-xs font-medium text-gray-500">Start Page (1-based)</label>
+                            <input
+                                type="number"
+                                id="startPage"
+                                value="1"
+                                min="1"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+                            />
+                        </div>
+                        <div class="w-1/2">
+                            <label for="endPage" class="block text-xs font-medium text-gray-500">End Page</label>
+                            <input
+                                type="number"
+                                id="endPage"
+                                value="4"
+                                min="1"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+                            />
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">For small PDFs, leave at 1 to 4. For large PDFs, use a small range to avoid memory issues.</p>
+                </div>
+
+                <div id="pdfInfo" class="mt-4 text-sm text-gray-600 space-y-1 border-t pt-4">
                     <p>File: <span id="fileName" class="font-medium">N/A</span></p>
                     <p>Pages: <span id="pageCount" class="font-medium">N/A</span></p>
                     <p>Original Size: <span id="fileSize" class="font-medium">N/A</span></p>
@@ -145,6 +174,8 @@
         const cropHeightInput = document.getElementById('cropHeight');
         const cropOriginSelector = document.getElementById('cropOriginSelector');
         const newFileSizeSpan = document.getElementById('newFileSize');
+        const startPageInput = document.getElementById('startPage');
+        const endPageInput = document.getElementById('endPage');
         
         // State
         let uploadedFile = null;
@@ -221,21 +252,28 @@
 
             try {
                 const arrayBuffer = await file.arrayBuffer();
-                // This step is memory intensive and where large files might fail
                 pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
 
                 document.getElementById('fileName').textContent = file.name;
-                document.getElementById('pageCount').textContent = pdfDoc.getPageCount();
+                const pageCount = pdfDoc.getPageCount();
+                document.getElementById('pageCount').textContent = pageCount;
                 document.getElementById('fileSize').textContent = formatBytes(file.size) + ` (${(file.size / 1024).toFixed(0)} KB)`;
                 
                 // Set default crop size to the first page's size for a better starting point
-                const firstPage = pdfDoc.getPages()[0];
-                const { width, height } = firstPage.getSize();
-                cropWidthInput.value = Math.round(width);
-                cropHeightInput.value = Math.round(height);
+                if (pageCount > 0) {
+                    const firstPage = pdfDoc.getPages()[0];
+                    const { width, height } = firstPage.getSize();
+                    cropWidthInput.value = Math.round(width);
+                    cropHeightInput.value = Math.round(height);
+                }
+                
+                // Update page range inputs
+                startPageInput.value = 1;
+                endPageInput.value = pageCount;
+
 
                 optimizeBtn.disabled = false;
-                updateStatus(`PDF loaded successfully. Set your options and click 'Optimize'.`);
+                updateStatus(`PDF loaded successfully (${pageCount} pages). Set your options and click 'Optimize'.`);
 
             } catch (error) {
                 console.error(error);
@@ -245,7 +283,7 @@
             }
         });
 
-        // --- Optimization Logic (MAJOR FIX: Switched to copyPages) ---
+        // --- Optimization Logic (Now with Page Range) ---
         
         optimizeBtn.addEventListener('click', async () => {
             if (!pdfDoc) {
@@ -254,7 +292,7 @@
             }
 
             optimizeBtn.disabled = true;
-            updateStatus('Aggressively optimizing PDF by scaling content... This may take a moment for large files.', 'info');
+            updateStatus('Aggressively optimizing PDF by scaling content... This may take a moment.', 'info');
 
             try {
                 const targetWidth = parseFloat(cropWidthInput.value);
@@ -267,35 +305,60 @@
                      return;
                 }
 
-                // 1. Create a new PDF document. We use copyPages to transfer content safely.
+                // --- 1. Determine Page Indices to Process ---
+                const totalPages = pdfDoc.getPageCount();
+                let startPage = parseInt(startPageInput.value) || 1;
+                let endPage = parseInt(endPageInput.value) || totalPages;
+                
+                // Clamp pages to valid range
+                if (startPage < 1) startPage = 1;
+                if (endPage > totalPages) endPage = totalPages;
+                if (startPage > endPage) startPage = endPage; 
+
+                const indicesToCopy = [];
+                // Page indices are 0-based in pdf-lib, but user input is 1-based
+                for (let i = startPage - 1; i < endPage; i++) {
+                    indicesToCopy.push(i);
+                }
+                
+                if (indicesToCopy.length === 0) {
+                    updateStatus('Page range is invalid. Please check start and end page numbers.', 'error');
+                    optimizeBtn.disabled = false;
+                    return;
+                }
+                
+                const pagesToProcess = indicesToCopy.length;
+                updateStatus(`Starting optimization for pages ${startPage} to ${endPage} (${pagesToProcess} total pages)...`, 'info');
+
+                // --- 2. Create New Document and Copy Pages ---
                 const newPdfDoc = await PDFDocument.create();
                 
-                // Copy all pages from the original document to the new document
-                // This is a crucial fix for stability and memory management
-                const copiedPages = await newPdfDoc.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                // Copy ONLY the selected pages from the original document
+                // This step adds N copied pages to the newPdfDoc
+                const copiedPages = await newPdfDoc.copyPages(pdfDoc, indicesToCopy);
 
                 
-                for (let index = 0; index < copiedPages.length; index++) {
-                    const originalPage = copiedPages[index];
+                for (let i = 0; i < copiedPages.length; i++) {
+                    const originalPage = copiedPages[i];
+                    const pageNumber = startPage + i; // 1-based page number for status message
                     
                     try {
-                        updateStatus(`Processing page ${index + 1} of ${copiedPages.length}...`, 'info');
+                        updateStatus(`Processing page ${pageNumber} of ${endPage} (Total pages in job: ${pagesToProcess})...`, 'info');
                         
-                        // 2. Add a new page with the user's desired output dimensions
-                        // We use the same page indices to maintain page count, but replace the content
+                        // 3. Add a new page with the user's desired output dimensions (This is the blank canvas)
                         const newPage = newPdfDoc.addPage([targetWidth, targetHeight]);
 
-                        // 3. Calculate scaled content size
+                        // 4. Calculate scaled content size
                         const { width: pageW, height: pageH } = originalPage.size;
                         const scaledW = pageW * scaleFactor;
                         const scaledH = pageH * scaleFactor;
                         
-                        // 4. Calculate position based on the selected anchor point
+                        // 5. Calculate position based on the selected anchor point
                         const { x: drawX, y: drawY } = calculateDrawPosition(
                             cropOrigin, targetWidth, targetHeight, scaledW, scaledH
                         );
 
-                        // 5. Draw the content of the copied page onto the new page at the reduced scale
+                        // 6. Draw the content of the copied page onto the new page at the reduced scale
                         newPage.drawPage(originalPage, {
                             x: drawX,
                             y: drawY,
@@ -303,29 +366,38 @@
                             height: scaledH,
                         });
 
-                        // 6. Ensure the final visible area is set correctly (CropBox/MediaBox)
+                        // 7. Ensure the final visible area is set correctly
                         newPage.setMediaBox(0, 0, targetWidth, targetHeight); 
                         newPage.setCropBox(0, 0, targetWidth, targetHeight);
 
-                        // Remove the original (unscaled) page that copyPages created at the end
-                        newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); 
+                        // 8. Remove the temporary page that copyPages created at the end of newPdfDoc
+                        // This removal logic is tricky but necessary: the newPage is the last page, 
+                        // and the originalPage (the copy) is the one before it, so we remove the original copy.
+                        // The originalPage object is still valid as a source for drawPage even after removal.
+                        // We remove the second-to-last page (which is the copy we just drew)
+                        newPdfDoc.removePage(newPdfDoc.getPageCount() - 2); 
 
                     } catch (pageError) {
-                        console.error(`Error processing page ${index + 1}:`, pageError);
-                        // Skip this page if it fails, but continue with the rest
-                        updateStatus(`Warning: Failed to process page ${index + 1}. Skipping. Check console for details.`, 'error');
-                        // Crucial: remove the two pages created (one from copy, one from addPage) if the process fails mid-way
-                        newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); // remove the new page
-                        newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); // remove the copied page
+                        console.error(`ERROR: Failed to process page ${pageNumber} (Index ${indicesToCopy[i]}).`, pageError);
+                        // If drawing failed, remove both the failed canvas (last page) AND the failed copy (second to last page)
+                        // Note: If the failure happened before addPage, the indices will be different.
+                        // Since we are in the drawPage block, we assume addPage worked.
+                        if (newPdfDoc.getPageCount() > 0) {
+                            newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); // remove the new page (canvas)
+                        }
+                        // Also attempt to remove the copied page if it was added and not already removed
+                        if (newPdfDoc.getPageCount() > 0) {
+                             newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); // remove the copied page (the one before the new page)
+                        }
+                       
+                        // Update status but continue
+                        updateStatus(`Warning: Failed to process page ${pageNumber}. The page content may be corrupted or too complex. Skipping page. Check CONSOLE for full details.`, 'error');
                     }
                 }
 
-                // 7. Save the new document with maximal compression
-                const arrayBuffer = await newPdfDoc.save({
-                    useCompression: true,
-                });
+                // --- 9. Finalize and Download ---
+                const arrayBuffer = await newPdfDoc.save({ useCompression: true });
                 
-                // 8. Create Blob and Download
                 const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
                 const blobUrl = URL.createObjectURL(blob);
                 const newSizeKB = (blob.size / 1024);
@@ -333,7 +405,7 @@
 
                 const link = document.createElement('a');
                 link.href = blobUrl;
-                link.download = `optimized_${uploadedFile.name}`;
+                link.download = `optimized_${startPage}_to_${endPage}_${uploadedFile.name}`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -343,12 +415,12 @@
                 // Update final size display
                 newFileSizeSpan.textContent = formatBytes(blob.size) + ` (${newSizeKB.toFixed(0)} KB)`;
 
-                let resultMessage = `Optimization complete! New size: ${newFileSizeSpan.textContent}. File downloaded.`;
+                let resultMessage = `Optimization complete! ${pagesToProcess} pages processed. New size: ${newFileSizeSpan.textContent}. File downloaded.`;
                 let resultType = 'success';
 
                 if (targetKB > 0) {
                     if (newSizeKB > targetKB) {
-                        resultMessage = `Warning: File size (${newSizeKB.toFixed(0)} KB) is still above your target of ${targetKB} KB. Try reducing the Content Scale Factor further (e.g., 0.5 or lower).`;
+                        resultMessage = `Warning: File size (${newSizeKB.toFixed(0)} KB) is still above your target of ${targetKB} KB. Try reducing the Content Scale Factor further.`;
                         resultType = 'error';
                     } else {
                          resultMessage = `Success: Target size of ${targetKB} KB was met! Final size: ${newFileSizeSpan.textContent}.`;
@@ -359,9 +431,9 @@
                 optimizeBtn.disabled = false;
 
             } catch (error) {
-                console.error("Optimization Error (High Level):", error);
-                // Catch the error and give a helpful message
-                updateStatus('An optimization error occurred. The PDF may be too complex or the browser ran out of memory. Try reducing the scale factor significantly or refreshing the page.', 'error');
+                console.error("Optimization Fatal Error (Likely Unrecognized Content Type):", error);
+                // CRUCIAL: Tell the user to check the console for the *real* error
+                updateStatus('A fatal optimization error occurred. The content is likely an unrecognized PDF element. **Please check your browser\'s Developer Console (F12) for the full red error message and send it to me!**', 'error');
                 optimizeBtn.disabled = false;
             }
         });
@@ -370,7 +442,6 @@
         
         // Scale Factor Slider listener
         scaleFactorInput.addEventListener('input', () => {
-            // Display value with two decimal places
             const value = parseFloat(scaleFactorInput.value).toFixed(2); 
             scaleFactorDisplay.textContent = value;
         });
@@ -381,7 +452,6 @@
         origins.forEach(origin => {
             const button = document.createElement('button');
             
-            // Generate initials for button text (e.g., TL, TC, TR)
             button.textContent = origin.split('-').map(s => s[0].toUpperCase()).join(''); 
             button.dataset.origin = origin;
             button.className = `p-2 rounded-md text-xs font-medium transition duration-150 border ${origin === cropOrigin ? 'bg-indigo-600 text-white shadow-md border-indigo-700' : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'}`;
