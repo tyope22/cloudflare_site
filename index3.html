@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In-Browser WebP Converter</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 flex items-start justify-center min-h-screen p-4 sm:p-8 font-sans">
+
+    <div class="w-full max-w-2xl bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-200">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-2">Image Optimizer (JPG/PNG to WebP)</h1>
+        <p class="text-gray-500 mb-6">Convert your images to the modern WebP format for improved website performance. All processing happens securely in your browser.</p>
+
+        <!-- Input and Settings -->
+        <div class="space-y-4 mb-8">
+            <!-- File Input -->
+            <label class="block text-sm font-medium text-gray-700" for="fileInput">1. Upload Image (JPG or PNG)</label>
+            <input type="file" id="fileInput" accept=".jpg, .jpeg, .png" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 p-2.5 transition duration-150 ease-in-out hover:bg-gray-100">
+
+            <!-- Optimization Settings -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+                <div>
+                    <label for="qualityRange" class="block text-sm font-medium text-gray-700">2. Compression Quality (WebP): <span id="qualityValue" class="font-bold text-blue-600">85</span>%</label>
+                    <input type="range" id="qualityRange" min="10" max="100" value="85" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer range-lg">
+                </div>
+                <div>
+                    <label for="maxWidth" class="block text-sm font-medium text-gray-700">Max Width (for Resizing): <span id="maxWidthValue" class="font-bold text-blue-600">1200</span>px</label>
+                    <input type="range" id="maxWidth" min="300" max="4000" value="1200" step="100" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer range-lg">
+                </div>
+            </div>
+        </div>
+
+        <!-- Conversion Button -->
+        <button id="convertBtn" onclick="processImage()" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-semibold shadow-lg hover:bg-indigo-700 transition duration-150 ease-in-out disabled:opacity-50" disabled>
+            Convert & Download WebP
+        </button>
+
+        <!-- Status and Results -->
+        <div id="statusMessage" class="mt-4 text-center text-sm font-medium text-gray-600 min-h-[1.5rem]"></div>
+        
+        <!-- Hidden Canvas for Processing -->
+        <canvas id="imageCanvas" class="hidden"></canvas>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('fileInput');
+            const convertBtn = document.getElementById('convertBtn');
+            const qualityRange = document.getElementById('qualityRange');
+            const qualityValue = document.getElementById('qualityValue');
+            const maxWidth = document.getElementById('maxWidth');
+            const maxWidthValue = document.getElementById('maxWidthValue');
+
+            // --- Event Listeners for UI ---
+
+            fileInput.addEventListener('change', () => {
+                convertBtn.disabled = !fileInput.files.length;
+                document.getElementById('statusMessage').textContent = fileInput.files.length ? 'Ready to process.' : '';
+            });
+
+            qualityRange.addEventListener('input', () => {
+                qualityValue.textContent = qualityRange.value;
+            });
+            
+            maxWidth.addEventListener('input', () => {
+                maxWidthValue.textContent = maxWidth.value;
+            });
+
+            // --- Main Conversion Logic ---
+
+            window.processImage = () => {
+                const file = fileInput.files[0];
+                if (!file) {
+                    document.getElementById('statusMessage').textContent = 'Please select an image file first.';
+                    return;
+                }
+
+                convertBtn.disabled = true;
+                document.getElementById('statusMessage').textContent = 'Processing image...';
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        try {
+                            const webpBlob = optimizeAndConvertToWebP(img);
+                            downloadFile(webpBlob, file.name);
+                            document.getElementById('statusMessage').textContent = 'Conversion complete! File ready for download.';
+                        } catch (e) {
+                            document.getElementById('statusMessage').textContent = 'Error during conversion. Try a different image.';
+                            console.error(e);
+                        } finally {
+                            convertBtn.disabled = false;
+                        }
+                    };
+                    img.onerror = () => {
+                        document.getElementById('statusMessage').textContent = 'Error loading image data.';
+                        convertBtn.disabled = false;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            };
+
+            const optimizeAndConvertToWebP = (img) => {
+                const canvas = document.getElementById('imageCanvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Get current settings
+                const quality = parseFloat(qualityRange.value) / 100;
+                const maxWidthPx = parseInt(maxWidth.value);
+
+                let { width, height } = img;
+                
+                // 1. Resizing (if necessary)
+                if (width > maxWidthPx) {
+                    height = Math.round(height * (maxWidthPx / width));
+                    width = maxWidthPx;
+                }
+
+                // Set canvas size for optimized dimensions
+                canvas.width = width;
+                canvas.height = height;
+
+                // 2. Draw the image (resizing happens here)
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // 3. Convert to WebP
+                // The toDataURL returns a base64 string
+                const dataUrl = canvas.toDataURL('image/webp', quality);
+                
+                // 4. Convert DataURL to Blob for proper download
+                return dataURLToBlob(dataUrl);
+            };
+
+            const dataURLToBlob = (dataUrl) => {
+                const parts = dataUrl.split(';base64,');
+                const contentType = parts[0].split(':')[1];
+                const raw = window.atob(parts[1]);
+                const rawLength = raw.length;
+                const uInt8Array = new Uint8Array(rawLength);
+                
+                for (let i = 0; i < rawLength; ++i) {
+                    uInt8Array[i] = raw.charCodeAt(i);
+                }
+                return new Blob([uInt8Array], { type: contentType });
+            };
+
+            const downloadFile = (blob, originalFileName) => {
+                const link = document.createElement('a');
+                
+                // Create the new WebP filename
+                const baseName = originalFileName.substring(0, originalFileName.lastIndexOf('.')) || originalFileName;
+                link.download = baseName + '.webp';
+                
+                // Create a temporary URL for the blob
+                link.href = URL.createObjectURL(blob);
+                
+                // Programmatically click the link to start the download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Clean up the temporary URL object
+                URL.revokeObjectURL(link.href);
+            };
+        });
+    </script>
+</body>
+</html>
