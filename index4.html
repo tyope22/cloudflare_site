@@ -60,7 +60,7 @@
                             />
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">For small PDFs, leave at 1 to 4. For large PDFs, use a small range to avoid memory issues.</p>
+                    <p class="text-xs text-gray-500 mt-1">If using a large PDF, use a small range (e.g., 1 to 5) to avoid memory issues.</p>
                 </div>
 
                 <div id="pdfInfo" class="mt-4 text-sm text-gray-600 space-y-1 border-t pt-4">
@@ -283,7 +283,7 @@
             }
         });
 
-        // --- Optimization Logic (Now with Page Range) ---
+        // --- Optimization Logic (FINAL FIX: Page Removal) ---
         
         optimizeBtn.addEventListener('click', async () => {
             if (!pdfDoc) {
@@ -292,7 +292,7 @@
             }
 
             optimizeBtn.disabled = true;
-            updateStatus('Aggressively optimizing PDF by scaling content... This may take a moment.', 'info');
+            updateStatus('Aggressively optimizing PDF by scaling content...', 'info');
 
             try {
                 const targetWidth = parseFloat(cropWidthInput.value);
@@ -333,8 +333,8 @@
                 // --- 2. Create New Document and Copy Pages ---
                 const newPdfDoc = await PDFDocument.create();
                 
-                // Copy ONLY the selected pages from the original document
-                // This step adds N copied pages to the newPdfDoc
+                // CRUCIAL: copyPages returns the references AND adds the pages to the newPdfDoc at the end.
+                // The newPdfDoc will now contain N copied pages (C1, C2, C3, C4...)
                 const copiedPages = await newPdfDoc.copyPages(pdfDoc, indicesToCopy);
 
                 
@@ -345,7 +345,8 @@
                     try {
                         updateStatus(`Processing page ${pageNumber} of ${endPage} (Total pages in job: ${pagesToProcess})...`, 'info');
                         
-                        // 3. Add a new page with the user's desired output dimensions (This is the blank canvas)
+                        // 3. Add a new page with the user's desired output dimensions. 
+                        // This page is added to the END of the document.
                         const newPage = newPdfDoc.addPage([targetWidth, targetHeight]);
 
                         // 4. Calculate scaled content size
@@ -358,7 +359,7 @@
                             cropOrigin, targetWidth, targetHeight, scaledW, scaledH
                         );
 
-                        // 6. Draw the content of the copied page onto the new page at the reduced scale
+                        // 6. Draw the content of the originalPage (which is a copy) onto the newPage (the canvas)
                         newPage.drawPage(originalPage, {
                             x: drawX,
                             y: drawY,
@@ -370,28 +371,27 @@
                         newPage.setMediaBox(0, 0, targetWidth, targetHeight); 
                         newPage.setCropBox(0, 0, targetWidth, targetHeight);
 
-                        // 8. Remove the temporary page that copyPages created at the end of newPdfDoc
-                        // This removal logic is tricky but necessary: the newPage is the last page, 
-                        // and the originalPage (the copy) is the one before it, so we remove the original copy.
-                        // The originalPage object is still valid as a source for drawPage even after removal.
-                        // We remove the second-to-last page (which is the copy we just drew)
-                        newPdfDoc.removePage(newPdfDoc.getPageCount() - 2); 
+                        // 8. FINAL CRITICAL FIX: The pages added by copyPages (the source content)
+                        // are at the beginning of the document [C1, C2, C3...]. 
+                        // We must remove the page that was used as the source for drawing.
+                        // Since we are iterating sequentially, the current source page is always at index 0.
+                        newPdfDoc.removePage(0); // Remove C1 on i=0, C2 on i=1, etc.
+                        
+                        // The newPage remains at the end, and the next copied page shifts to index 0.
 
                     } catch (pageError) {
                         console.error(`ERROR: Failed to process page ${pageNumber} (Index ${indicesToCopy[i]}).`, pageError);
-                        // If drawing failed, remove both the failed canvas (last page) AND the failed copy (second to last page)
-                        // Note: If the failure happened before addPage, the indices will be different.
-                        // Since we are in the drawPage block, we assume addPage worked.
+                        
+                        // If drawing failed, remove the newly added, blank canvas page (which is the last page).
                         if (newPdfDoc.getPageCount() > 0) {
                             newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); // remove the new page (canvas)
                         }
-                        // Also attempt to remove the copied page if it was added and not already removed
+                        // Also remove the source page that caused the error (which is now at index 0).
                         if (newPdfDoc.getPageCount() > 0) {
-                             newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); // remove the copied page (the one before the new page)
+                             newPdfDoc.removePage(0); // remove the copied page (the one that couldn't be drawn)
                         }
                        
-                        // Update status but continue
-                        updateStatus(`Warning: Failed to process page ${pageNumber}. The page content may be corrupted or too complex. Skipping page. Check CONSOLE for full details.`, 'error');
+                        updateStatus(`Warning: Failed to process page ${pageNumber}. Skipping page. Check CONSOLE for full details.`, 'error');
                     }
                 }
 
@@ -431,9 +431,9 @@
                 optimizeBtn.disabled = false;
 
             } catch (error) {
-                console.error("Optimization Fatal Error (Likely Unrecognized Content Type):", error);
-                // CRUCIAL: Tell the user to check the console for the *real* error
-                updateStatus('A fatal optimization error occurred. The content is likely an unrecognized PDF element. **Please check your browser\'s Developer Console (F12) for the full red error message and send it to me!**', 'error');
+                console.error("Optimization Fatal Error:", error);
+                // If a fatal error occurs, the source is likely complex content the library can't handle.
+                updateStatus('A fatal optimization error occurred. The PDF content is likely too complex for in-browser manipulation. Please try a different source file or check the browser console for details.', 'error');
                 optimizeBtn.disabled = false;
             }
         });
