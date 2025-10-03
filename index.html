@@ -265,40 +265,35 @@ let zoomTimeout;
 
 // Function to handle the start of the zoom
 function startZoom() {
-    clearTimeout(zoomTimeout); 
-    
-    zoomTimeout = setTimeout(() => {
-        // 1. Get the current width of the clock element
-        const clockWidth = clockElement.offsetWidth;
-        
-        // 2. Get the width of the viewport
-        const viewportWidth = window.innerWidth;
-        
-        // 3. Calculate the required scale factor: (Viewport Width / Clock Width)
-        // We use a small buffer (0.95) to ensure it doesn't clip right at the edge
-        const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
-        
-        // 4. Set the CSS variable on the element
-        clockElement.style.setProperty('--scale-factor', scaleFactor);
+    clearTimeout(zoomTimeout); // Clears any pending unzoom/rezoom events
 
-        // 5. Apply the zoom class
-        clockElement.classList.add('clock-zoom');
-    }, 150); // 150ms delay for stability
+    // 1. Get the current width of the clock element
+    const clockWidth = clockElement.offsetWidth;
+    
+    // 2. Get the width of the viewport
+    const viewportWidth = window.innerWidth;
+    
+    // 3. Calculate the required scale factor
+    const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
+    
+    // 4. Set the CSS variable on the element
+    clockElement.style.setProperty('--scale-factor', scaleFactor);
+
+    // 5. Apply the zoom class
+    clockElement.classList.add('clock-zoom');
 }
 
-// Function to handle the end of the zoom
-        function endZoom() {
-            // Clear the timeout if it hasn't fired yet
-            clearTimeout(zoomTimeout);
-            
-            // 1. Remove the class (removes position, transform, zoom colors)
-            clockElement.classList.remove('clock-zoom');
-            
-            // 2. Clear the dynamically set scale factor
-            clockElement.style.removeProperty('--scale-factor');
-            
-            // We rely on the #live-clock CSS to immediately re-apply default colors and shadows.
-        }
+// Function to handle the end of the zoom (No changes needed)
+function endZoom() {
+    // Clear the timeout is still necessary here, in case the mouse leaves before 150ms was up.
+    clearTimeout(zoomTimeout); // Keep this line 
+    
+    // 1. Remove the class
+    clockElement.classList.remove('clock-zoom');
+    
+    // 2. Clear the dynamically set scale factor
+    clockElement.style.removeProperty('--scale-factor');
+}
 
 // Apply the robust event listeners
 if (clockElement) {
