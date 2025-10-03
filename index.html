@@ -329,29 +329,7 @@ if (clockElement) {
 // Remove the existing 'click' listener on 'clockElement'
 // clockElement.addEventListener('click', function(event) { ... });
 
-// *** NEW GLOBAL CLICK LISTENER ***
-document.addEventListener('click', function(event) {
-    const isClockZoomed = clockElement.classList.contains('clock-zoom');
-    
-    // Check if the click was on the clock element itself (when it's small)
-    if (event.target.id === 'live-clock' && !isClockZoomed) {
-        // 1. Zoom in (Original startZoom logic)
-        event.preventDefault(); 
-        const clockWidth = clockElement.offsetWidth;
-        const viewportWidth = window.innerWidth;
-        const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
 
-        clockElement.style.setProperty('--scale-factor', scaleFactor);
-        clockElement.classList.add('clock-zoom');
-        
-    } 
-    // Check if the clock is already zoomed (and the user clicked *anywhere*)
-    else if (isClockZoomed) {
-        // 2. Zoom out
-        endZoom();
-    }
-});
-    
     // We can now REMOVE the separate ontouchstart handler, 
     // as 'click' will fire on both desktop and mobile tap.
 }
