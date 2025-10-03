@@ -246,100 +246,80 @@ h1 {
 
 
             // Find the <div> element with the id "live-clock"
-            const clockElement = document.getElementById('live-clock');
-
-            // Update the content of that <div>
-            clockElement.innerText = timeString;
-        }
-
-        // 3. Start the clock immediately when the page loads
-        updateClock(); 
-
-        // 4. Set an interval to run the updateClock function every 1000 milliseconds (1 second)
-        // This is what makes it a "live" clock
-        setInterval(updateClock, 1000);
-        
-        // --- Stable Hover Zoom Logic ---
+            // --- STABLE HOVER ZOOM LOGIC (Your existing functions) ---
 const clockElement = document.getElementById('live-clock');
 let zoomTimeout;
 
-// Function to handle the start of the zoom
+// Function to handle the start of the zoom (using a delay for stability)
 function startZoom() {
     clearTimeout(zoomTimeout); 
     
     zoomTimeout = setTimeout(() => {
-        // 1. Get the current width of the clock element
+        // 1. Calculate the required scale factor
         const clockWidth = clockElement.offsetWidth;
-        
-        // 2. Get the width of the viewport
         const viewportWidth = window.innerWidth;
-        
-        // 3. Calculate the required scale factor: (Viewport Width / Clock Width)
-        // We use a small buffer (0.95) to ensure it doesn't clip right at the edge
         const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
         
-        // 4. Set the CSS variable on the element
+        // 2. Set the CSS variable
         clockElement.style.setProperty('--scale-factor', scaleFactor);
 
-        // 5. Apply the zoom class
+        // 3. Apply the zoom class
         clockElement.classList.add('clock-zoom');
     }, 150); // 150ms delay for stability
 }
 
 // Function to handle the end of the zoom
-        function endZoom() {
-            // Clear the timeout if it hasn't fired yet
-            clearTimeout(zoomTimeout);
-            
-            // 1. Remove the class (removes position, transform, zoom colors)
-            clockElement.classList.remove('clock-zoom');
-            
-            // 2. Clear the dynamically set scale factor
-            clockElement.style.removeProperty('--scale-factor');
-            
-            // We rely on the #live-clock CSS to immediately re-apply default colors and shadows.
-        }
-
-// Apply the robust event listeners
-if (clockElement) {
-    // --- DESKTOP MOUSE INTERACTION (The Fix) ---
-    // Use mousedown and mouseup to simulate a "tap" interaction on desktop.
-    // This removes the unstable hover effect.
-    clockElement.addEventListener('mousedown', startZoom);
-    clockElement.addEventListener('mouseup', endZoom);
-    clockElement.addEventListener('mouseleave', endZoom);
+function endZoom() {
+    // Clear the timeout if it hasn't fired yet
+    clearTimeout(zoomTimeout);
     
-    // --- MOBILE TOUCH INTERACTION (Your original toggle logic) ---
-    // We use addEventListener instead of ontouchstart to maintain consistency.
+    // 1. Remove the class (removes position, transform, zoom colors)
+    clockElement.classList.remove('clock-zoom');
+    
+    // 2. Clear the dynamically set scale factor
+    clockElement.style.removeProperty('--scale-factor');
+}
+
+
+// --- CROSS-DEVICE EVENT LISTENERS (The combined fix) ---
+if (clockElement) {
+    
+    // 1. DESKTOP/LAPTOP (Use MOUSE events for click interaction)
+    // When the user presses the mouse button, start the zoom (after 150ms delay)
+    clockElement.addEventListener('mousedown', startZoom);
+    // When the user releases the mouse button or leaves the element, end the zoom
+    clockElement.addEventListener('mouseup', endZoom);
+    clockElement.addEventListener('mouseleave', endZoom); 
+    
+    
+    // 2. MOBILE/TOUCH EMULATION (Use your existing toggle logic)
     clockElement.addEventListener('touchstart', (event) => {
         // Prevent the browser's default context menu or long-press delay
-        event.preventDefault(); 
-        
+        // We MUST check event.cancelable before calling preventDefault()
+        if (event.cancelable) {
+            event.preventDefault(); 
+        }
+
         // Toggle the zoom state on tap
         if (clockElement.classList.contains('clock-zoom')) {
             // If already zoomed, unzoom immediately
             endZoom(); 
         } else {
-            // If not zoomed, zoom in immediately
-            // Note: We skip the stability timeout here for a snappy mobile tap experience
+            // If not zoomed, zoom in immediately (bypassing the 150ms timeout for snappiness)
             
-            // 1. Calculate the required scale factor
+            // Calculate the required scale factor
             const clockWidth = clockElement.offsetWidth;
             const viewportWidth = window.innerWidth;
             const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
             
-            // 2. Set the CSS variable
+            // Set the CSS variable and apply the zoom class
             clockElement.style.setProperty('--scale-factor', scaleFactor);
-            
-            // 3. Apply the zoom class
             clockElement.classList.add('clock-zoom');
         }
     });
 
-    // Ensure touch end events still work to prevent stuck state
+    // Ensure touch end events still clear the timeout if it was pending
     clockElement.addEventListener('touchend', () => {
-        // Since touch is a toggle, we don't need 'touchend' to unzoom,
-        // but it's good practice to clear the stability timeout if a quick tap occurs.
         clearTimeout(zoomTimeout);
     });
     clockElement.addEventListener('touchcancel', () => {
