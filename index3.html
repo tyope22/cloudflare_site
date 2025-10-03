@@ -1,183 +1,290 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>In-Browser WebP Converter</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                }
-            }
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+
+// Main App Component
+const App = () => {
+    // --- State Management ---
+    const [originalFile, setOriginalFile] = useState(null);
+    const [originalImage, setOriginalImage] = useState(null);
+    const [status, setStatus] = useState('Ready: Upload an image to start.');
+    const [targetFormat, setTargetFormat] = useState('webp'); // Default to WebP
+    const [quality, setQuality] = useState(85); // Quality for lossy formats (JPG, WebP)
+    const [maxWidth, setMaxWidth] = useState(1920); // Max width for resizing
+    const [maxHeight, setMaxHeight] = useState(1920); // Max height for resizing
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    // Ref for the hidden canvas used for image manipulation
+    const canvasRef = useRef(null);
+
+    // --- File Handling and Image Loading ---
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        setOriginalFile(file);
+        setOriginalImage(null);
+        setStatus('Loading image...');
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                setOriginalImage(img);
+                setStatus(`Image loaded: ${file.name} (${img.width}x${img.height})`);
+                // Reset dimensions based on image size to prevent excessive resizing
+                setMaxWidth(img.width);
+                setMaxHeight(img.height);
+            };
+            img.onerror = () => {
+                setStatus('Error loading image.');
+                setOriginalFile(null);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // --- Core Conversion and Optimization Logic ---
+
+    const processAndDownload = useCallback(() => {
+        if (!originalImage) {
+            setStatus('Please load an image first.');
+            return;
         }
-    </script>
-</head>
-<body class="bg-gray-100 flex items-start justify-center min-h-screen p-4 sm:p-8 font-sans">
 
-    <div class="w-full max-w-2xl bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-200">
-        <h1 class="text-3xl font-extrabold text-gray-800 mb-2">Image Optimizer (JPG/PNG to WebP)</h1>
-        <p class="text-gray-500 mb-6">Convert your images to the modern WebP format for improved website performance. All processing happens securely in your browser.</p>
+        setIsProcessing(true);
+        setStatus('Processing and optimizing...');
 
-        <!-- Input and Settings -->
-        <div class="space-y-4 mb-8">
-            <!-- File Input -->
-            <label class="block text-sm font-medium text-gray-700" for="fileInput">1. Upload Image (JPG or PNG)</label>
-            <input type="file" id="fileInput" accept=".jpg, .jpeg, .png" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 p-2.5 transition duration-150 ease-in-out hover:bg-gray-100">
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        
+        let { width: w, height: h } = originalImage;
+        const targetMaxWidth = parseInt(maxWidth);
+        const targetMaxHeight = parseInt(maxHeight);
 
-            <!-- Optimization Settings -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-                <div>
-                    <label for="qualityRange" class="block text-sm font-medium text-gray-700">2. Compression Quality (WebP): <span id="qualityValue" class="font-bold text-blue-600">85</span>%</label>
-                    <input type="range" id="qualityRange" min="10" max="100" value="85" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer range-lg">
-                </div>
-                <div>
-                    <label for="maxWidth" class="block text-sm font-medium text-gray-700">Max Width (for Resizing): <span id="maxWidthValue" class="font-bold text-blue-600">1200</span>px</label>
-                    <input type="range" id="maxWidth" min="300" max="4000" value="1200" step="100" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer range-lg">
-                </div>
+        // 1. Calculate New Dimensions (Resolution Optimization)
+        // Adjust width and height to fit within maxWidth and maxHeight while maintaining aspect ratio
+        const ratio = Math.min(targetMaxWidth / w, targetMaxHeight / h);
+        
+        if (ratio < 1) { // Only downscale if image is larger than max limits
+            w = Math.floor(w * ratio);
+            h = Math.floor(h * ratio);
+        }
+
+        // Set canvas size for optimized dimensions
+        canvas.width = w;
+        canvas.height = h;
+
+        // 2. Draw the image (resizing/redrawing happens here)
+        ctx.clearRect(0, 0, w, h); // Clear canvas before drawing
+        ctx.drawImage(originalImage, 0, 0, w, h);
+
+        // 3. Prepare MimeType and Quality (Size/Compression Optimization)
+        let mimeType, defaultQuality;
+        let fileExtension = targetFormat;
+        
+        switch (targetFormat) {
+            case 'webp':
+                mimeType = 'image/webp';
+                defaultQuality = quality / 100; // WebP quality
+                break;
+            case 'jpeg':
+                mimeType = 'image/jpeg';
+                defaultQuality = quality / 100; // JPEG quality
+                break;
+            case 'png':
+            default:
+                mimeType = 'image/png';
+                defaultQuality = 1.0; // PNG is lossless, quality setting is often ignored
+                fileExtension = 'png';
+                break;
+        }
+        
+        // --- 4. Get the result (DataURL) and download ---
+        const dataUrl = canvas.toDataURL(mimeType, defaultQuality);
+        const blob = dataURLToBlob(dataUrl);
+
+        // Create download link
+        const link = document.createElement('a');
+        const baseName = originalFile.name.substring(0, originalFile.name.lastIndexOf('.')) || originalFile.name;
+        link.download = `${baseName}.${fileExtension}`;
+        link.href = URL.createObjectURL(blob);
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        URL.revokeObjectURL(link.href);
+        
+        setStatus(`Successfully converted to ${targetFormat.toUpperCase()} (${w}x${h}).`);
+        setIsProcessing(false);
+
+    }, [originalImage, targetFormat, quality, maxWidth, maxHeight, originalFile]);
+
+    // Helper function to convert DataURL to Blob for downloading
+    const dataURLToBlob = (dataUrl) => {
+        const parts = dataUrl.split(';base64,');
+        if (parts.length < 2) throw new Error("Invalid DataURL");
+
+        const contentType = parts[0].split(':')[1];
+        const raw = window.atob(parts[1]);
+        const rawLength = raw.length;
+        const uInt8Array = new Uint8Array(rawLength);
+        
+        for (let i = 0; i < rawLength; ++i) {
+            uInt8Array[i] = raw.charCodeAt(i);
+        }
+        return new Blob([uInt8Array], { type: contentType });
+    };
+
+    // --- UI Rendering ---
+
+    const isLossyFormat = targetFormat === 'webp' || targetFormat === 'jpeg';
+    const isReady = originalImage && !isProcessing;
+
+    // Component for Input/Display
+    const ImageDisplay = () => (
+        <div className="flex flex-col items-center justify-center p-4 bg-gray-100 border border-dashed border-gray-300 rounded-xl min-h-[12rem] w-full">
+            {originalImage ? (
+                <img 
+                    src={originalImage.src} 
+                    alt="Original Upload" 
+                    className="max-h-48 rounded-lg shadow-md mb-3" 
+                    style={{ maxWidth: '100%', maxHeight: '10rem' }}
+                />
+            ) : (
+                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            )}
+            <p className="text-sm font-medium text-gray-600 mt-2 text-center">
+                {originalImage ? `${originalImage.width}x${originalImage.height} | ${originalFile.type}` : 'Upload an image above'}
+            </p>
+        </div>
+    );
+
+    // Component for Controls
+    const ControlWindow = ({ title, children }) => (
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">{title}</h3>
+            <div className="space-y-4">
+                {children}
             </div>
         </div>
+    );
 
-        <!-- Conversion Button -->
-        <button id="convertBtn" onclick="processImage()" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-semibold shadow-lg hover:bg-indigo-700 transition duration-150 ease-in-out disabled:opacity-50" disabled>
-            Convert & Download WebP
-        </button>
+    // Render the main application structure
+    return (
+        <div className="p-4 sm:p-8 bg-gray-50 min-h-screen flex justify-center w-full">
+            <div className="w-full max-w-5xl">
+                <h1 className="text-4xl font-extrabold text-indigo-700 mb-2">Advanced Image Optimization Tool</h1>
+                <p className="text-gray-600 mb-8">Perform various format conversions and apply both resolution and compression optimization in-browser.</p>
 
-        <!-- Status and Results -->
-        <div id="statusMessage" class="mt-4 text-center text-sm font-medium text-gray-600 min-h-[1.5rem]"></div>
-        
-        <!-- Hidden Canvas for Processing -->
-        <canvas id="imageCanvas" class="hidden"></canvas>
-    </div>
+                {/* File Input & Target Format */}
+                <div className="bg-white p-6 rounded-xl shadow-xl mb-6">
+                    <label htmlFor="fileInput" className="block text-lg font-medium text-gray-800 mb-2">1. Upload Source Image</label>
+                    <input 
+                        type="file" 
+                        id="fileInput" 
+                        accept="image/jpeg, image/png, image/webp" 
+                        onChange={handleFileChange}
+                        className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 p-2.5 hover:bg-gray-100"
+                    />
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const fileInput = document.getElementById('fileInput');
-            const convertBtn = document.getElementById('convertBtn');
-            const qualityRange = document.getElementById('qualityRange');
-            const qualityValue = document.getElementById('qualityValue');
-            const maxWidth = document.getElementById('maxWidth');
-            const maxWidthValue = document.getElementById('maxWidthValue');
+                    <label className="block text-lg font-medium text-gray-800 mt-6 mb-2">2. Select Target Format</label>
+                    <div className="flex space-x-4">
+                        {['webp', 'jpeg', 'png'].map((format) => (
+                            <button
+                                key={format}
+                                onClick={() => setTargetFormat(format)}
+                                className={`px-4 py-2 rounded-lg font-semibold transition duration-150 ${
+                                    targetFormat === format 
+                                        ? 'bg-indigo-600 text-white shadow-md' 
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                                {format.toUpperCase()}
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-            // --- Event Listeners for UI ---
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    {/* Image Display Window */}
+                    <div className="lg:col-span-1">
+                        <ImageDisplay />
+                    </div>
 
-            fileInput.addEventListener('change', () => {
-                convertBtn.disabled = !fileInput.files.length;
-                document.getElementById('statusMessage').textContent = fileInput.files.length ? 'Ready to process.' : '';
-            });
+                    {/* Resolution Optimization Window */}
+                    <div className="lg:col-span-1">
+                        <ControlWindow title="3. Resolution Optimization">
+                            <label className="block text-sm font-medium text-gray-700">Max Width: <span className="font-bold text-indigo-600">{maxWidth}</span> px</label>
+                            <input 
+                                type="range" 
+                                min="100" 
+                                max={originalImage ? originalImage.width : 2000} 
+                                value={maxWidth} 
+                                step="10" 
+                                onChange={(e) => setMaxWidth(e.target.value)}
+                                className="w-full h-2 bg-indigo-100 rounded-lg appearance-none cursor-pointer"
+                            />
+                            
+                            <label className="block text-sm font-medium text-gray-700 mt-4">Max Height: <span className="font-bold text-indigo-600">{maxHeight}</span> px</label>
+                            <input 
+                                type="range" 
+                                min="100" 
+                                max={originalImage ? originalImage.height : 2000} 
+                                value={maxHeight} 
+                                step="10" 
+                                onChange={(e) => setMaxHeight(e.target.value)}
+                                className="w-full h-2 bg-indigo-100 rounded-lg appearance-none cursor-pointer"
+                            />
+                            <p className="text-xs text-gray-500 mt-2">The image will be resized to fit within these dimensions while maintaining its aspect ratio.</p>
+                        </ControlWindow>
+                    </div>
 
-            qualityRange.addEventListener('input', () => {
-                qualityValue.textContent = qualityRange.value;
-            });
-            
-            maxWidth.addEventListener('input', () => {
-                maxWidthValue.textContent = maxWidth.value;
-            });
+                    {/* Size (Compression) Optimization Window */}
+                    <div className="lg:col-span-1">
+                        <ControlWindow title="4. Size (Compression) Optimization">
+                            <label className={`block text-sm font-medium ${isLossyFormat ? 'text-gray-700' : 'text-gray-400'}`}>
+                                Compression Quality: <span className="font-bold text-indigo-600">{quality}</span>%
+                            </label>
+                            <input 
+                                type="range" 
+                                min="10" 
+                                max="100" 
+                                value={quality} 
+                                onChange={(e) => setQuality(e.target.value)}
+                                disabled={!isLossyFormat}
+                                className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${isLossyFormat ? 'bg-indigo-100' : 'bg-gray-200'}`}
+                            />
+                            <p className="text-xs text-gray-500 mt-2">
+                                {isLossyFormat
+                                    ? `Applies to ${targetFormat.toUpperCase()} (Lossy). Lower quality = smaller file size.`
+                                    : 'PNG is a lossless format, so quality controls have minimal effect.'
+                                }
+                            </p>
+                        </ControlWindow>
+                    </div>
+                </div>
 
-            // --- Main Conversion Logic ---
+                {/* Action & Status */}
+                <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-xl">
+                    <div className="w-full sm:w-1/2 text-center sm:text-left mb-4 sm:mb-0">
+                        <p className={`font-semibold ${isProcessing ? 'text-yellow-600' : 'text-gray-700'}`}>{status}</p>
+                    </div>
+                    <button 
+                        onClick={processAndDownload}
+                        disabled={!isReady || isProcessing}
+                        className="w-full sm:w-auto bg-green-600 text-white p-3 rounded-xl font-semibold shadow-lg hover:bg-green-700 transition duration-150 ease-in-out disabled:opacity-50"
+                    >
+                        {isProcessing ? 'Processing...' : `Convert & Download ${targetFormat.toUpperCase()}`}
+                    </button>
+                </div>
+            </div>
 
-            window.processImage = () => {
-                const file = fileInput.files[0];
-                if (!file) {
-                    document.getElementById('statusMessage').textContent = 'Please select an image file first.';
-                    return;
-                }
+            {/* Hidden Canvas element */}
+            <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+        </div>
+    );
+};
 
-                convertBtn.disabled = true;
-                document.getElementById('statusMessage').textContent = 'Processing image...';
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        try {
-                            const webpBlob = optimizeAndConvertToWebP(img);
-                            downloadFile(webpBlob, file.name);
-                            document.getElementById('statusMessage').textContent = 'Conversion complete! File ready for download.';
-                        } catch (e) {
-                            document.getElementById('statusMessage').textContent = 'Error during conversion. Try a different image.';
-                            console.error(e);
-                        } finally {
-                            convertBtn.disabled = false;
-                        }
-                    };
-                    img.onerror = () => {
-                        document.getElementById('statusMessage').textContent = 'Error loading image data.';
-                        convertBtn.disabled = false;
-                    };
-                    img.src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-            };
-
-            const optimizeAndConvertToWebP = (img) => {
-                const canvas = document.getElementById('imageCanvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Get current settings
-                const quality = parseFloat(qualityRange.value) / 100;
-                const maxWidthPx = parseInt(maxWidth.value);
-
-                let { width, height } = img;
-                
-                // 1. Resizing (if necessary)
-                if (width > maxWidthPx) {
-                    height = Math.round(height * (maxWidthPx / width));
-                    width = maxWidthPx;
-                }
-
-                // Set canvas size for optimized dimensions
-                canvas.width = width;
-                canvas.height = height;
-
-                // 2. Draw the image (resizing happens here)
-                ctx.drawImage(img, 0, 0, width, height);
-
-                // 3. Convert to WebP
-                // The toDataURL returns a base64 string
-                const dataUrl = canvas.toDataURL('image/webp', quality);
-                
-                // 4. Convert DataURL to Blob for proper download
-                return dataURLToBlob(dataUrl);
-            };
-
-            const dataURLToBlob = (dataUrl) => {
-                const parts = dataUrl.split(';base64,');
-                const contentType = parts[0].split(':')[1];
-                const raw = window.atob(parts[1]);
-                const rawLength = raw.length;
-                const uInt8Array = new Uint8Array(rawLength);
-                
-                for (let i = 0; i < rawLength; ++i) {
-                    uInt8Array[i] = raw.charCodeAt(i);
-                }
-                return new Blob([uInt8Array], { type: contentType });
-            };
-
-            const downloadFile = (blob, originalFileName) => {
-                const link = document.createElement('a');
-                
-                // Create the new WebP filename
-                const baseName = originalFileName.substring(0, originalFileName.lastIndexOf('.')) || originalFileName;
-                link.download = baseName + '.webp';
-                
-                // Create a temporary URL for the blob
-                link.href = URL.createObjectURL(blob);
-                
-                // Programmatically click the link to start the download
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                // Clean up the temporary URL object
-                URL.revokeObjectURL(link.href);
-            };
-        });
-    </script>
-</body>
-</html>
+export default App;
