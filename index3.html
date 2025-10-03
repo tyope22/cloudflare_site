@@ -1,4 +1,28 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Image Optimizer</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load React and Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* Optional: Sets Inter font globally */
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+
+    <!-- Target container for the React app -->
+    <div id="root"></div>
+
+    <script type="text/babel">
+// All the code from ImageTool.jsx goes here
+const { useState, useCallback, useRef } = React;
 
 // Main App Component
 const App = () => {
@@ -287,4 +311,10 @@ const App = () => {
     );
 };
 
-export default App;
+// Render the App component into the root DOM element
+const container = document.getElementById('root');
+const root = ReactDOM.createRoot(container);
+root.render(<App />);
+    </script>
+</body>
+</html>
