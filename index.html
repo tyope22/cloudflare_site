@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -299,32 +299,61 @@ function endZoom() {
 
 // Find and REPLACE this entire event block:
 if (clockElement) {
-    // clockElement.onmouseover = startZoom; // or onmouseenter
-    // clockElement.onmouseout = endZoom;    // or onmouseleave
-    
-    // clockElement.ontouchstart = (event) => { /* ... existing logic ... */ };
+    // --- Stable Zoom Logic (Revised) ---
+const clockElement = document.getElementById('live-clock');
 
-    // WITH THIS SINGLE CLICK/TOUCH HANDLER:
+// Function to handle the start of the zoom
+function startZoom() {
+    // 1. Get the current width of the clock element
+    const clockWidth = clockElement.offsetWidth;
     
-    clockElement.addEventListener('click', function(event) {
-        event.preventDefault(); // Prevent any default click actions
+    // 2. Get the width of the viewport
+    const viewportWidth = window.innerWidth;
+    
+    // 3. Calculate the required scale factor
+    const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
+    
+    // 4. Set the CSS variable on the element
+    clockElement.style.setProperty('--scale-factor', scaleFactor);
+
+    // 5. Apply the zoom class (which has the CRITICAL pointer-events: none)
+    clockElement.classList.add('clock-zoom');
+}
+
+// Function to handle the end of the zoom
+function endZoom() {
+    // 1. Remove the class
+    clockElement.classList.remove('clock-zoom');
+    
+    // 2. Clear the dynamically set scale factor
+    clockElement.style.removeProperty('--scale-factor');
+}
+
+// *** NEW GLOBAL CLICK LISTENER (Click Anywhere to Zoom Out) ***
+if (clockElement) {
+    document.addEventListener('click', function(event) {
+        const isClockZoomed = clockElement.classList.contains('clock-zoom');
         
-        // Use a simple toggle state
-        if (clockElement.classList.contains('clock-zoom')) {
-            // If already zoomed, unzoom
+        // --- 1. ZOOM OUT LOGIC (Click anywhere if already zoomed) ---
+        if (isClockZoomed) {
+            // Note: Since pointer-events: none is active, a click on the clock
+            // itself will actually register as a click on whatever is *behind* it.
+            // This is perfect for a close-on-click-outside behavior.
             endZoom();
-        } else {
-            // If not zoomed, zoom in
-            
-            // Note: We MUST recalculate the scale factor here
-            const clockWidth = clockElement.offsetWidth;
-            const viewportWidth = window.innerWidth;
-            const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
-
-            clockElement.style.setProperty('--scale-factor', scaleFactor);
-            clockElement.classList.add('clock-zoom');
+            return; // Stop processing after zoom out
+        } 
+        
+        // --- 2. ZOOM IN LOGIC (Only if the click target is the small clock) ---
+        else if (event.target.id === 'live-clock') {
+            event.preventDefault(); 
+            startZoom(); // Call the startZoom function which handles the calculation
         }
     });
+
+    // Remove old, unnecessary variables and listeners if they exist
+    // (The `zoomTimeout` variable and the `ontouchstart` are now obsolete)
+}
+// --- End Stable Zoom Logic ---
 
 // Remove the existing 'click' listener on 'clockElement'
 // clockElement.addEventListener('click', function(event) { ... });
