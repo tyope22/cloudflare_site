@@ -301,15 +301,17 @@ function startZoom() {
         }
 
 // Apply the robust event listeners
-        if (clockElement) {
-            // Mouse Events: Use hover for continuous zoom (as desired on desktop)
-            clockElement.onmouseover = startZoom;
-            clockElement.onmouseout = endZoom;
-            
-            // Touch Events: Use a single tap to toggle zoom on/off (best mobile UX)
-            clockElement.ontouchstart = (event) => {
-                // Prevent the browser's default context menu or long-press delay
-                event.preventDefault(); 
+if (clockElement) {
+    // Mouse Events: Use hover for continuous zoom (as desired on desktop)
+    // *** CRITICAL CHANGE: Use addEventListener for robustness ***
+    clockElement.addEventListener('mouseover', startZoom);
+    clockElement.addEventListener('mouseout', endZoom);
+    
+    // Touch Events: Use a single tap to toggle zoom on/off (best mobile UX)
+    clockElement.ontouchstart = (event) => {
+
+        // Prevent the browser's default context menu or long-press delay
+        event.preventDefault(); 
                 
                 // Toggle the zoom state on tap
                 if (clockElement.classList.contains('clock-zoom')) {
