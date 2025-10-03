@@ -1,0 +1,17 @@
+# Ignore all Python bytecode
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.py
+
+# Ignore common Python development files and folders
+venv/             # Virtual environment folder (e.g., used by venv/virtualenv)
+.env              # Environment variable file
+.pytest_cache/
+.mypy_cache/
+
+# Ignore Python source files by name (if necessary)
+# Add specific Python files here that you want to keep local
+secrets.py
+local_config.py

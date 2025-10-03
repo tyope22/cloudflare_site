@@ -1,2 +1,0 @@
-original = bike
-print(original)
