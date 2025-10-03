@@ -16,7 +16,7 @@
 
     <div id="root" class="w-full max-w-5xl mx-auto">
         <h1 class="text-4xl font-extrabold text-indigo-700 mb-2">PDF Compression & Cropping Tool</h1>
-        <p class="text-gray-600 mb-8">This tool uses **Content Scaling** to aggressively reduce file size. Use a lower scale factor for maximum reduction.</p>
+        <p class="text-gray-600 mb-8">This tool **Content Scaling** to aggressively reduce file size. Use a lower scale factor for maximum reduction.</p>
 
         <!-- Status Message -->
         <div id="status-box" class="bg-indigo-100 border-l-4 border-indigo-500 text-indigo-700 p-4 rounded-lg mb-6 shadow">
@@ -167,7 +167,6 @@
         const fileInput = document.getElementById('fileInput');
         const optimizeBtn = document.getElementById('optimizeBtn');
         const statusText = document.getElementById('status-text');
-        const targetSizeInput = document.getElementById('targetSize');
         const scaleFactorInput = document.getElementById('scaleFactorInput');
         const scaleFactorDisplay = document.getElementById('scaleFactorDisplay');
         const cropWidthInput = document.getElementById('cropWidth');
@@ -283,7 +282,7 @@
             }
         });
 
-        // --- Optimization Logic (FINAL FIX: Page Removal) ---
+        // --- Optimization Logic (New Strategy: Embed and Draw) ---
         
         optimizeBtn.addEventListener('click', async () => {
             if (!pdfDoc) {
@@ -315,93 +314,92 @@
                 if (endPage > totalPages) endPage = totalPages;
                 if (startPage > endPage) startPage = endPage; 
 
-                const indicesToCopy = [];
-                // Page indices are 0-based in pdf-lib, but user input is 1-based
-                for (let i = startPage - 1; i < endPage; i++) {
-                    indicesToCopy.push(i);
-                }
+                // 0-based index range
+                const startIndex = startPage - 1;
+                const endIndex = endPage; // exclusive for slice
                 
-                if (indicesToCopy.length === 0) {
+                if (startIndex >= endIndex) {
                     updateStatus('Page range is invalid. Please check start and end page numbers.', 'error');
                     optimizeBtn.disabled = false;
                     return;
                 }
-                
-                const pagesToProcess = indicesToCopy.length;
+
+                const pagesToProcess = endIndex - startIndex;
                 updateStatus(`Starting optimization for pages ${startPage} to ${endPage} (${pagesToProcess} total pages)...`, 'info');
 
-                // --- 2. Create New Document and Copy Pages ---
+                // --- 2. Create New Document and get pages from old doc ---
                 const newPdfDoc = await PDFDocument.create();
                 
-                // CRUCIAL: copyPages returns the references AND adds the pages to the newPdfDoc at the end.
-                // The newPdfDoc will now contain N copied pages (C1, C2, C3, C4...)
-                const copiedPages = await newPdfDoc.copyPages(pdfDoc, indicesToCopy);
+                // Get the subset of pages to process from the original document
+                const sourcePages = pdfDoc.getPages().slice(startIndex, endIndex);
 
-                
-                for (let i = 0; i < copiedPages.length; i++) {
-                    const originalPage = copiedPages[i];
+                for (let i = 0; i < sourcePages.length; i++) {
+                    const originalPage = sourcePages[i];
                     const pageNumber = startPage + i; // 1-based page number for status message
                     
                     try {
                         updateStatus(`Processing page ${pageNumber} of ${endPage} (Total pages in job: ${pagesToProcess})...`, 'info');
                         
-                        // 3. Add a new page with the user's desired output dimensions. 
-                        // This page is added to the END of the document.
+                        // 3. Embed the original page content as a Form Object (XObject)
+                        // This is the key step: it ensures the content is transferred robustly.
+                        const [embeddedPage] = await newPdfDoc.embedPages([originalPage]);
+                        
+                        // 4. Add a new page with the user's desired output dimensions (This is the blank canvas)
                         const newPage = newPdfDoc.addPage([targetWidth, targetHeight]);
 
-                        // 4. Calculate scaled content size
-                        const { width: pageW, height: pageH } = originalPage.size;
+                        // 5. Calculate scaled content size
+                        const { width: pageW, height: pageH } = embeddedPage.size;
                         const scaledW = pageW * scaleFactor;
                         const scaledH = pageH * scaleFactor;
                         
-                        // 5. Calculate position based on the selected anchor point
+                        // 6. Calculate position based on the selected anchor point
                         const { x: drawX, y: drawY } = calculateDrawPosition(
                             cropOrigin, targetWidth, targetHeight, scaledW, scaledH
                         );
 
-                        // 6. Draw the content of the originalPage (which is a copy) onto the newPage (the canvas)
-                        newPage.drawPage(originalPage, {
+                        // 7. Draw the embedded content onto the new page (the canvas)
+                        newPage.drawPage(embeddedPage, {
                             x: drawX,
                             y: drawY,
                             width: scaledW,
                             height: scaledH,
                         });
-
-                        // 7. Ensure the final visible area is set correctly
+                        
+                        // 8. Visual Debugging: Draw a small red square in the top-left to prove the newPage is active.
+                        newPage.drawRectangle({
+                            x: 5, y: targetHeight - 15, width: 10, height: 10,
+                            color: rgb(1, 0, 0),
+                        });
+                        
+                        // 9. Ensure the final visible area is set correctly
                         newPage.setMediaBox(0, 0, targetWidth, targetHeight); 
                         newPage.setCropBox(0, 0, targetWidth, targetHeight);
-
-                        // 8. FINAL CRITICAL FIX: The pages added by copyPages (the source content)
-                        // are at the beginning of the document [C1, C2, C3...]. 
-                        // We must remove the page that was used as the source for drawing.
-                        // Since we are iterating sequentially, the current source page is always at index 0.
-                        newPdfDoc.removePage(0); // Remove C1 on i=0, C2 on i=1, etc.
                         
-                        // The newPage remains at the end, and the next copied page shifts to index 0.
+                        // Since newPdfDoc.embedPages implicitly adds the content,
+                        // we must remove the page that was created by embedPages (the page before the last one).
+                        // This part is the tricky bit, but is required by the embedPages process when used iteratively.
+                        // The embeddedPage object remains valid even if its corresponding page is removed.
+                        newPdfDoc.removePage(newPdfDoc.getPageCount() - 2); 
+
 
                     } catch (pageError) {
-                        console.error(`ERROR: Failed to process page ${pageNumber} (Index ${indicesToCopy[i]}).`, pageError);
+                        console.error(`ERROR: Failed to process page ${pageNumber}. The page content may be corrupted or too complex.`, pageError);
                         
-                        // If drawing failed, remove the newly added, blank canvas page (which is the last page).
+                        // If an error happened, remove the page added by addPage (the last page).
                         if (newPdfDoc.getPageCount() > 0) {
-                            newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); // remove the new page (canvas)
-                        }
-                        // Also remove the source page that caused the error (which is now at index 0).
-                        if (newPdfDoc.getPageCount() > 0) {
-                             newPdfDoc.removePage(0); // remove the copied page (the one that couldn't be drawn)
+                            newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); 
                         }
                        
-                        updateStatus(`Warning: Failed to process page ${pageNumber}. Skipping page. Check CONSOLE for full details.`, 'error');
+                        updateStatus(`Warning: Failed to process page ${pageNumber}. Skipping page due to content error. Check CONSOLE for full details.`, 'error');
                     }
                 }
 
-                // --- 9. Finalize and Download ---
+                // --- 10. Finalize and Download ---
                 const arrayBuffer = await newPdfDoc.save({ useCompression: true });
                 
                 const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
                 const blobUrl = URL.createObjectURL(blob);
                 const newSizeKB = (blob.size / 1024);
-                const targetKB = parseInt(targetSizeInput.value) || 0;
 
                 const link = document.createElement('a');
                 link.href = blobUrl;
@@ -415,19 +413,8 @@
                 // Update final size display
                 newFileSizeSpan.textContent = formatBytes(blob.size) + ` (${newSizeKB.toFixed(0)} KB)`;
 
-                let resultMessage = `Optimization complete! ${pagesToProcess} pages processed. New size: ${newFileSizeSpan.textContent}. File downloaded.`;
-                let resultType = 'success';
-
-                if (targetKB > 0) {
-                    if (newSizeKB > targetKB) {
-                        resultMessage = `Warning: File size (${newSizeKB.toFixed(0)} KB) is still above your target of ${targetKB} KB. Try reducing the Content Scale Factor further.`;
-                        resultType = 'error';
-                    } else {
-                         resultMessage = `Success: Target size of ${targetKB} KB was met! Final size: ${newFileSizeSpan.textContent}.`;
-                    }
-                }
-
-                updateStatus(resultMessage, resultType);
+                let resultMessage = `Optimization complete! ${newPdfDoc.getPageCount()} pages successfully created. New size: ${newFileSizeSpan.textContent}. File downloaded.`;
+                updateStatus(resultMessage, 'success');
                 optimizeBtn.disabled = false;
 
             } catch (error) {
