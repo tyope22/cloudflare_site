@@ -177,6 +177,18 @@
             color: #94A3B8; /* gray-400 */
         }
 
+/* NEW STYLE: Profile Picture */
+.profile-picture {
+    height: 5rem;
+    width: 5rem;
+    border-radius: 50%; /* Make it circular */
+    object-fit: cover; /* Ensure the image covers the area without distortion */
+    border: 4px solid #06B6D4; /* Add a cyan ring/border */
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.8); /* Subtle glow */
+}
+/* END NEW STYLE */
+
+        
         .project-content {
             display: flex;
             flex-direction: column;
@@ -289,7 +301,13 @@
                 <h1 class="card-title">
                     About This Project & Me
                 </h1>
-
+                <div class="profile-icon-wrapper">
+                    <!-- Insert your Profile Picture here -->
+                    <img 
+                        src="https://placehold.co/80x80/06B6D4/FFFFFF?text=PFP" 
+                        alt="Your Profile Picture" 
+                        class="profile-picture">
+</div>
                 <!-- Profile Section (Placeholder for an image or avatar) -->
                 <div class="profile-container">
                     <!-- Placeholder Image/Icon -->
