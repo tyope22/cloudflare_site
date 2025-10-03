@@ -176,12 +176,6 @@
 
         /**
          * Calculates the x and y coordinates to draw the scaled content, based on the anchor point.
-         * @param {string} origin - 'top-left', 'center', etc.
-         * @param {number} targetWidth - The width of the new PDF page.
-         * @param {number} targetHeight - The height of the new PDF page.
-         * @param {number} scaledW - The width of the content after scaling.
-         * @param {number} scaledH - The height of the content after scaling.
-         * @returns {{x: number, y: number}} The coordinates to start drawing.
          */
         function calculateDrawPosition(origin, targetWidth, targetHeight, scaledW, scaledH) {
             let x, y;
@@ -251,7 +245,7 @@
             }
         });
 
-        // --- Optimization Logic ---
+        // --- Optimization Logic (MAJOR FIX: Switched to copyPages) ---
         
         optimizeBtn.addEventListener('click', async () => {
             if (!pdfDoc) {
@@ -273,43 +267,57 @@
                      return;
                 }
 
-                // Create a new PDF document to transfer and transform content
+                // 1. Create a new PDF document. We use copyPages to transfer content safely.
                 const newPdfDoc = await PDFDocument.create();
                 
-                const originalPageIndices = pdfDoc.getPageIndices();
+                // Copy all pages from the original document to the new document
+                // This is a crucial fix for stability and memory management
+                const copiedPages = await newPdfDoc.copyPages(pdfDoc, pdfDoc.getPageIndices());
+
                 
-                for (const index of originalPageIndices) {
-                    updateStatus(`Processing page ${index + 1} of ${originalPageIndices.length}...`, 'info');
+                for (let index = 0; index < copiedPages.length; index++) {
+                    const originalPage = copiedPages[index];
                     
-                    // 1. Get the content of the original page
-                    const [embeddedPage] = await newPdfDoc.embedPages([pdfDoc.getPages()[index]]);
-                    
-                    const { width: pageW, height: pageH } = embeddedPage.size;
+                    try {
+                        updateStatus(`Processing page ${index + 1} of ${copiedPages.length}...`, 'info');
+                        
+                        // 2. Add a new page with the user's desired output dimensions
+                        // We use the same page indices to maintain page count, but replace the content
+                        const newPage = newPdfDoc.addPage([targetWidth, targetHeight]);
 
-                    // 2. Add a new page with the user's desired output dimensions
-                    const newPage = newPdfDoc.addPage([targetWidth, targetHeight]);
+                        // 3. Calculate scaled content size
+                        const { width: pageW, height: pageH } = originalPage.size;
+                        const scaledW = pageW * scaleFactor;
+                        const scaledH = pageH * scaleFactor;
+                        
+                        // 4. Calculate position based on the selected anchor point
+                        const { x: drawX, y: drawY } = calculateDrawPosition(
+                            cropOrigin, targetWidth, targetHeight, scaledW, scaledH
+                        );
 
-                    // 3. Calculate scaled content size
-                    const scaledW = pageW * scaleFactor;
-                    const scaledH = pageH * scaleFactor;
-                    
-                    // 4. Calculate position based on the selected anchor point
-                    const { x: drawX, y: drawY } = calculateDrawPosition(
-                        cropOrigin, targetWidth, targetHeight, scaledW, scaledH
-                    );
+                        // 5. Draw the content of the copied page onto the new page at the reduced scale
+                        newPage.drawPage(originalPage, {
+                            x: drawX,
+                            y: drawY,
+                            width: scaledW,
+                            height: scaledH,
+                        });
 
-                    // 5. Draw the original page content onto the new page at the reduced scale
-                    // This is the CRITICAL step for size reduction
-                    newPage.drawPage(embeddedPage, {
-                        x: drawX,
-                        y: drawY,
-                        width: scaledW,
-                        height: scaledH,
-                    });
+                        // 6. Ensure the final visible area is set correctly (CropBox/MediaBox)
+                        newPage.setMediaBox(0, 0, targetWidth, targetHeight); 
+                        newPage.setCropBox(0, 0, targetWidth, targetHeight);
 
-                    // 6. Ensure the final visible area is set correctly (CropBox/MediaBox)
-                    newPage.setMediaBox(0, 0, targetWidth, targetHeight); 
-                    newPage.setCropBox(0, 0, targetWidth, targetHeight);
+                        // Remove the original (unscaled) page that copyPages created at the end
+                        newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); 
+
+                    } catch (pageError) {
+                        console.error(`Error processing page ${index + 1}:`, pageError);
+                        // Skip this page if it fails, but continue with the rest
+                        updateStatus(`Warning: Failed to process page ${index + 1}. Skipping. Check console for details.`, 'error');
+                        // Crucial: remove the two pages created (one from copy, one from addPage) if the process fails mid-way
+                        newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); // remove the new page
+                        newPdfDoc.removePage(newPdfDoc.getPageCount() - 1); // remove the copied page
+                    }
                 }
 
                 // 7. Save the new document with maximal compression
@@ -351,9 +359,9 @@
                 optimizeBtn.disabled = false;
 
             } catch (error) {
-                console.error("Optimization Error:", error);
+                console.error("Optimization Error (High Level):", error);
                 // Catch the error and give a helpful message
-                updateStatus('An optimization error occurred. This is common for very complex or corrupted PDFs. Try reducing the scale factor significantly.', 'error');
+                updateStatus('An optimization error occurred. The PDF may be too complex or the browser ran out of memory. Try reducing the scale factor significantly or refreshing the page.', 'error');
                 optimizeBtn.disabled = false;
             }
         });
