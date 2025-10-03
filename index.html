@@ -299,8 +299,8 @@ function endZoom() {
 if (clockElement) {
     // Mouse Events: Use hover for continuous zoom (as desired on desktop)
     // *** CRITICAL CHANGE: Use addEventListener for robustness ***
-    clockElement.addEventListener('mouseover', startZoom);
-    clockElement.addEventListener('mouseout', endZoom);
+    clockElement.onmouseenter = startZoom;
+    clockElement.onmouseleave = endZoom;
     
     // Touch Events: Use a single tap to toggle zoom on/off (best mobile UX)
     clockElement.ontouchstart = (event) => {
