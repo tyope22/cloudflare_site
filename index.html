@@ -1,8 +1,7 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <meta name="google-site-verification" content="bvy3sL8jC_pD1-peOD3jq-TDWdSQR6eCxxGn76RedhY" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preload" as="image" href="assets/optimized_rose.jpg" fetchpriority="high">
@@ -50,6 +49,8 @@
           /* --- Dynamic Zoom Class (Triggered by JS) --- */
 
 .clock-zoom {
+    /* Existing zoom styles... */ /* CRITICAL FIX: Tell the browser to ignore mouse events on the zoomed element */ 
+    pointer-events: none; 
 
 box-shadow: 0 0 70px rgba(97, 218, 251, 1);
 
@@ -135,8 +136,8 @@ h1 {
 }
 
 #shayari-text {
-    /* Assuming 'Tinos' is not a system font, it will need a fallback */
-    font-family: 'Tinos', serif; 
+    /* FIX: Using a high-performance system serif font stack */
+    font-family: 'Georgia', 'Times New Roman', serif;
     font-size: clamp(1.2rem, 3vw, 2rem);
     font-style: italic;
     font-weight: 700;
@@ -189,7 +190,7 @@ h1 {
         <div class="image-circle">
             
             <img 
-                src="assets/optimized_rosee.jpg" 
+                src="assets/optimized_rose.jpg" 
                 alt="A beautiful rose" 
                 onerror="this.onerror=null; this.src='https://placehold.co/400x400/14b8a6/ffffff?text=Image+Placeholder'" 
                 />
@@ -198,9 +199,10 @@ h1 {
     Learn More About Me
 </a>
    
-<!-- The Clock: Applying dark, modern colors with Tailwind -->
-<div id="live-clock" class="mb-10 bg-gray-900 text-red-500 shadow-2xl neon-glow">
-    Loading Clock...
+<!-- The Clock: Now styled purely by custom CSS in the <style> block -->
+<div id="live-clock">
+    Loading Clock...
+</div>
 
 </div>
 <!-- Shayari Rotating Display -->
@@ -265,73 +267,101 @@ let zoomTimeout;
 
 // Function to handle the start of the zoom
 function startZoom() {
-    clearTimeout(zoomTimeout); 
-    
-    zoomTimeout = setTimeout(() => {
-        // 1. Get the current width of the clock element
-        const clockWidth = clockElement.offsetWidth;
-        
-        // 2. Get the width of the viewport
-        const viewportWidth = window.innerWidth;
-        
-        // 3. Calculate the required scale factor: (Viewport Width / Clock Width)
-        // We use a small buffer (0.95) to ensure it doesn't clip right at the edge
-        const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
-        
-        // 4. Set the CSS variable on the element
-        clockElement.style.setProperty('--scale-factor', scaleFactor);
+    clearTimeout(zoomTimeout); // Clears any pending unzoom/rezoom events
 
-        // 5. Apply the zoom class
-        clockElement.classList.add('clock-zoom');
-    }, 150); // 150ms delay for stability
+    // 1. Get the current width of the clock element
+    const clockWidth = clockElement.offsetWidth;
+    
+    // 2. Get the width of the viewport
+    const viewportWidth = window.innerWidth;
+    
+    // 3. Calculate the required scale factor
+    const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
+    
+    // 4. Set the CSS variable on the element
+    clockElement.style.setProperty('--scale-factor', scaleFactor);
+
+    // 5. Apply the zoom class
+    clockElement.classList.add('clock-zoom');
+}
+
+// Function to handle the end of the zoom (No changes needed)
+function endZoom() {
+    // Clear the timeout is still necessary here, in case the mouse leaves before 150ms was up.
+    clearTimeout(zoomTimeout); // Keep this line 
+    
+    // 1. Remove the class
+    clockElement.classList.remove('clock-zoom');
+    
+    // 2. Clear the dynamically set scale factor
+    clockElement.style.removeProperty('--scale-factor');
+}
+
+// Find and REPLACE this entire event block:
+if (clockElement) {
+    // --- Stable Zoom Logic (Revised) ---
+const clockElement = document.getElementById('live-clock');
+
+// Function to handle the start of the zoom
+function startZoom() {
+    // 1. Get the current width of the clock element
+    const clockWidth = clockElement.offsetWidth;
+    
+    // 2. Get the width of the viewport
+    const viewportWidth = window.innerWidth;
+    
+    // 3. Calculate the required scale factor
+    const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
+    
+    // 4. Set the CSS variable on the element
+    clockElement.style.setProperty('--scale-factor', scaleFactor);
+
+    // 5. Apply the zoom class (which has the CRITICAL pointer-events: none)
+    clockElement.classList.add('clock-zoom');
 }
 
 // Function to handle the end of the zoom
-        function endZoom() {
-            // Clear the timeout if it hasn't fired yet
-            clearTimeout(zoomTimeout);
-            
-            // 1. Remove the class (removes position, transform, zoom colors)
-            clockElement.classList.remove('clock-zoom');
-            
-            // 2. Clear the dynamically set scale factor
-            clockElement.style.removeProperty('--scale-factor');
-            
-            // We rely on the #live-clock CSS to immediately re-apply default colors and shadows.
-        }
+function endZoom() {
+    // 1. Remove the class
+    clockElement.classList.remove('clock-zoom');
+    
+    // 2. Clear the dynamically set scale factor
+    clockElement.style.removeProperty('--scale-factor');
+}
 
-// Apply the robust event listeners
-        if (clockElement) {
-            // Mouse Events: Use hover for continuous zoom (as desired on desktop)
-            clockElement.onmouseover = startZoom;
-            clockElement.onmouseout = endZoom;
-            
-            // Touch Events: Use a single tap to toggle zoom on/off (best mobile UX)
-            clockElement.ontouchstart = (event) => {
-                // Prevent the browser's default context menu or long-press delay
-                event.preventDefault(); 
-                
-                // Toggle the zoom state on tap
-                if (clockElement.classList.contains('clock-zoom')) {
-                    // If already zoomed, unzoom immediately
-                    endZoom(); 
-                } else {
-                    // If not zoomed, zoom in immediately
-                    // Note: We skip the stability timeout here for a snappy mobile tap experience
-                    
-                    // 1. Calculate the required scale factor
-                    const clockWidth = clockElement.offsetWidth;
-                    const viewportWidth = window.innerWidth;
-                    const scaleFactor = (viewportWidth / clockWidth) * 0.95; 
-                    
-                    // 2. Set the CSS variable
-                    clockElement.style.setProperty('--scale-factor', scaleFactor);
-                    
-                    // 3. Apply the zoom class
-                    clockElement.classList.add('clock-zoom');
-                }
-            };
+// *** NEW GLOBAL CLICK LISTENER (Click Anywhere to Zoom Out) ***
+if (clockElement) {
+    document.addEventListener('click', function(event) {
+        const isClockZoomed = clockElement.classList.contains('clock-zoom');
+        
+        // --- 1. ZOOM OUT LOGIC (Click anywhere if already zoomed) ---
+        if (isClockZoomed) {
+            // Note: Since pointer-events: none is active, a click on the clock
+            // itself will actually register as a click on whatever is *behind* it.
+            // This is perfect for a close-on-click-outside behavior.
+            endZoom();
+            return; // Stop processing after zoom out
+        } 
+        
+        // --- 2. ZOOM IN LOGIC (Only if the click target is the small clock) ---
+        else if (event.target.id === 'live-clock') {
+            event.preventDefault(); 
+            startZoom(); // Call the startZoom function which handles the calculation
         }
+    });
+
+    // Remove old, unnecessary variables and listeners if they exist
+    // (The `zoomTimeout` variable and the `ontouchstart` are now obsolete)
+}
+// --- End Stable Zoom Logic ---
+
+// Remove the existing 'click' listener on 'clockElement'
+// clockElement.addEventListener('click', function(event) { ... });
+
+
+    // We can now REMOVE the separate ontouchstart handler, 
+    // as 'click' will fire on both desktop and mobile tap.
+}
 // --- End Stable Hover Zoom Logic ---
         
         // --- SHAYARI ROTATION LOGIC (WITH AESTHETICS) ---
