@@ -1,11 +1,11 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
  <meta charset="UTF-8">
  <meta name="google-site-verification" content="bvy3sL8jC_pD1-peOD3jq-TDWdSQR6eCxxGn76RedhY" />
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <link rel="preload" as="image" href="assets/optimized_rose_256.webp" fetchpriority="high">
- <link rel="preload" href="/shayari.json" as="fetch" type="application/json">
+ <link rel="preload" href="./shayari.json" as="fetch" type="application/json">
    
  <title>Shayari Collection | Live Clock</title> 
     
@@ -498,7 +498,7 @@ function rotateShayari() {
             rotateShayari();
             setInterval(rotateShayari, rotationInterval);
         } else {
-            setShayari("The Book of Verses is loading...");
+            setShayari("shayari is loading...");
         }
     }
 }
