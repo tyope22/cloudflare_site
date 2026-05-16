@@ -15,3 +15,9 @@ venv/             # Virtual environment folder (e.g., used by venv/virtualenv)
 # Add specific Python files here that you want to keep local
 secrets.py
 local_config.py
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
